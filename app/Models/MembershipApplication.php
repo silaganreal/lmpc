@@ -35,6 +35,7 @@ class MembershipApplication extends Model
             'board_approval_date' => 'date',
             'processed_at' => 'datetime',
             'approved_at' => 'datetime',
+            'shares_subscribed' => 'integer',
             'amount_subscribed' => 'decimal:2',
             'initial_paid_up' => 'decimal:2',
         ];
