@@ -12,6 +12,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 Route::middleware(['auth'])->group(function () {
     Route::resource('members', MemberController::class);
+
+    Route::patch(
+        'members/{member}/reactivate',
+        [MemberController::class, 'reactivate']
+    )->name('members.reactivate');
+
     Route::resource('membership-applications', MembershipApplicationController::class);
 });
 

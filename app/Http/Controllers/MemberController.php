@@ -53,7 +53,7 @@ class MemberController extends Controller
         ]);
 
         return Inertia::render('Members/Show', [
-            'members' => $member,
+            'member' => $member,
         ]);
     }
 
@@ -67,9 +67,11 @@ class MemberController extends Controller
     public function update(UpdateMemberRequest $request, Member $member): RedirectResponse
     {
         $validated = $request->validated();
-        $member->update($request->$validated);
+        $member->update($validated);
 
-        return redirect()->route('members.show', $member)->with('success', 'Member updated successfully.');
+        return redirect()
+            ->route('members.show', $member)
+            ->with('success', 'Member updated successfully.');
     }
 
     public function destroy(Member $member): RedirectResponse
@@ -78,7 +80,20 @@ class MemberController extends Controller
             'status' => 'inactive',
         ]);
 
-        return redirect()->route('members.index')->with('success', 'Member deactivated successfully.');
+        return redirect()
+            ->route('members.index')
+            ->with('success', 'Member deactivated successfully.');
+    }
+
+    public function reactivate(Member $member): RedirectResponse
+    {
+        $member->update([
+            'status' => 'active',
+        ]);
+
+        return redirect()
+            ->route('members.show', $member)
+            ->with('success', 'Member reactivated successfully.');
     }
 
     private function generateMemberNumber(): string

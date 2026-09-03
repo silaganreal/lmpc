@@ -42,7 +42,7 @@ class Member extends Model
     /**
      * @return HasMany<MemberAddress, $this>
      */
-    protected function addresses(): HasMany
+    public function addresses(): HasMany
     {
         return $this->hasMany(MemberAddress::class);
     }

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
-import { LayoutGrid, Users } from '@lucide/vue';
+import { FileText, LayoutGrid, Users } from '@lucide/vue';
 
 import AppLogo from '@/components/AppLogo.vue';
 import NavMain from '@/components/NavMain.vue';
@@ -29,6 +29,11 @@ const mainNavItems: NavItem[] = [
         title: 'Members',
         href: '/members',
         icon: Users,
+    },
+    {
+        title: 'Membership Applications',
+        href: '/membership-applications',
+        icon: FileText,
     },
 ];
 </script>
