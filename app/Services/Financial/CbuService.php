@@ -10,7 +10,8 @@ use InvalidArgumentException;
 
 class CbuService
 {
-    public function createAccount(Member $member): CbuAccount {
+    public function createAccount(Member $member): CbuAccount
+    {
         return CbuAccount::firstOrCreate(
             ['member_id' => $member->id],
             [
@@ -27,7 +28,7 @@ class CbuService
         ?string $referenceNo = null,
         ?string $description = null,
         ?int $createdBy = null
-    ): CbuTrancation {
+    ): CbuTransaction {
         if ($amount <= 0) {
             throw new InvalidArgumentException(
                 'CBU contribution amount must be greater than zero.'
@@ -55,7 +56,7 @@ class CbuService
 
             $account->increment('current_balance', $amount);
 
-            return $transanction;
+            return $transaction;
         });
     }
 
@@ -98,7 +99,7 @@ class CbuService
                 'reference_no' => $referenceNo,
                 'description' => $description,
                 'amount' => $amount,
-                'created_by' => $createdBy
+                'created_by' => $createdBy,
             ]);
 
             $account->decrement('current_balance', $amount);

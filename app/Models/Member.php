@@ -28,37 +28,62 @@ class Member extends Model
         'residence_type',
         'membership_type',
         'date_joined',
-        'status'
+        'status',
     ];
 
-    protected function casts(): array {
+    protected function casts(): array
+    {
         return [
             'date_of_birth' => 'date',
             'date_joined' => 'date',
         ];
     }
 
-    protected function addresses(): HasMany {
+    /**
+     * @return HasMany<MemberAddress, $this>
+     */
+    protected function addresses(): HasMany
+    {
         return $this->hasMany(MemberAddress::class);
     }
 
-    public function familyMembers(): HasMany {
+    /**
+     * @return HasMany<MemberFamilyMember, $this>
+     */
+    public function familyMembers(): HasMany
+    {
         return $this->hasMany(MemberFamilyMember::class);
     }
 
-    public function educations(): HasMany {
+    /**
+     * @return HasMany<MemberEducation, $this>
+     */
+    public function educations(): HasMany
+    {
         return $this->hasMany(MemberEducation::class);
     }
 
-    public function employments(): HasMany {
+    /**
+     * @return HasMany<MemberEmployment, $this>
+     */
+    public function employments(): HasMany
+    {
         return $this->hasMany(MemberEmployment::class);
     }
 
-    public function shareAccount(): HasOne {
+    /**
+     * @return HasOne<ShareAccount, $this>
+     */
+    public function shareAccount(): HasOne
+    {
         return $this->hasOne(ShareAccount::class);
     }
 
-    public function cbuAccount(): HasOne {
+    /**
+     * @return HasOne<CbuAccount, $this>
+     */
+    public function cbuAccount(): HasOne
+    {
         return $this->hasOne(CbuAccount::class);
     }
 }

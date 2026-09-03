@@ -18,18 +18,27 @@ class CbuTransaction extends Model
         'created_by',
     ];
 
-    protected function casts(): array {
+    protected function casts(): array
+    {
         return [
             'transaction_date' => 'datetime',
             'amount' => 'decimal:2',
         ];
     }
 
-    public function cbuAccount(): BelongsTo {
+    /**
+     * @return BelongsTo<CbuAccount, $this>
+     */
+    public function cbuAccount(): BelongsTo
+    {
         return $this->belongsTo(CbuAccount::class);
     }
 
-    public function createdBy(): BelongsTo {
+    /**
+     * @return BelongsTo<User, $this>
+     */
+    public function createdBy(): BelongsTo
+    {
         return $this->belongsTo(User::class, 'created_by');
     }
 }

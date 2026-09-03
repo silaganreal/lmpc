@@ -20,7 +20,8 @@ class MemberFamilyMember extends Model
         'is_beneficiary',
     ];
 
-    protected function casts(): array {
+    protected function casts(): array
+    {
         return [
             'date_of_birth' => 'date',
             'is_lbpmc_member' => 'boolean',
@@ -28,7 +29,11 @@ class MemberFamilyMember extends Model
         ];
     }
 
-    public function member(): BelongsTo {
+    /**
+     * @return BelongsTo<Member, $this>
+     */
+    public function member(): BelongsTo
+    {
         return $this->belongsTo(Member::class);
     }
 }

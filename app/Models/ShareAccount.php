@@ -17,7 +17,8 @@ class ShareAccount extends Model
         'opened_at',
     ];
 
-    protected function casts(): array {
+    protected function casts(): array
+    {
         return [
             'total_subscribed_amount' => 'decimal:2',
             'paid_up_amount' => 'decimal:2',
@@ -25,11 +26,19 @@ class ShareAccount extends Model
         ];
     }
 
-    public function member(): BelongsTo {
+    /**
+     * @return BelongsTo<Member, $this>
+     */
+    public function member(): BelongsTo
+    {
         return $this->belongsTo(Member::class);
     }
 
-    public function transactions(): HasMany {
+    /**
+     * @return HasMany<ShareTransaction, $this>
+     */
+    public function transactions(): HasMany
+    {
         return $this->hasMany(ShareTransaction::class);
     }
 }

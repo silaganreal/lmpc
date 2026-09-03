@@ -22,13 +22,18 @@ class MemberAddress extends Model
         'is_primary',
     ];
 
-    protected function casts(): array {
+    protected function casts(): array
+    {
         return [
             'is_primary' => 'boolean',
         ];
     }
 
-    public function member(): BelongsTo {
+    /**
+     * @return BelongsTo<Member, $this>
+     */
+    public function member(): BelongsTo
+    {
         return $this->belongsTo(Member::class);
     }
 }

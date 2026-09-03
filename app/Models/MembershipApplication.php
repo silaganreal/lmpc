@@ -28,7 +28,8 @@ class MembershipApplication extends Model
         'remarks',
     ];
 
-    protected function casts(): array {
+    protected function casts(): array
+    {
         return [
             'date_of_application' => 'date',
             'board_approval_date' => 'date',
@@ -39,19 +40,35 @@ class MembershipApplication extends Model
         ];
     }
 
-    public function member(): BelongsTo {
+    /**
+     * @return BelongsTo<Member, $this>
+     */
+    public function member(): BelongsTo
+    {
         return $this->belongsTo(Member::class);
     }
 
-    public function processedBy(): BelongsTo {
+    /**
+     * @return BelongsTo<User, $this>
+     */
+    public function processedBy(): BelongsTo
+    {
         return $this->belongsTo(User::class, 'processed_by');
     }
 
-    public function approvedBy(): BelongsTo {
+    /**
+     * @return BelongsTo<User, $this>
+     */
+    public function approvedBy(): BelongsTo
+    {
         return $this->belongsTo(User::class, 'approved_by');
     }
 
-    public function documents(): HasMany {
+    /**
+     * @return HasMany<MembershipApplicationDocument, $this>
+     */
+    public function documents(): HasMany
+    {
         return $this->hasMany(MembershipApplicationDocument::class);
     }
 }

@@ -1,27 +1,27 @@
 <script setup lang="ts">
-    import { Link } from '@inertiajs/vue3';
+import { Link } from '@inertiajs/vue3';
 
-    interface Member {
-        id: number
-        member_no: string
-        first_name: string
-        middle_name: string
-        last_name: string
-        suffix: string | null
-        membership_type: string | null
-        status: string
-    }
+interface Member {
+    id: number;
+    member_no: string;
+    first_name: string;
+    middle_name: string;
+    last_name: string;
+    suffix: string | null;
+    membership_type: string | null;
+    status: string;
+}
 
-    interface PaginatedMembers {
-        data: Member[]
-        current_page: number
-        last_page: number
-        total: number
-    }
+interface PaginatedMembers {
+    data: Member[];
+    current_page: number;
+    last_page: number;
+    total: number;
+}
 
-    defineProps<{
-        members: PaginatedMembers
-    }>()
+defineProps<{
+    members: PaginatedMembers;
+}>();
 </script>
 
 <template>
@@ -30,12 +30,14 @@
             <div>
                 <h1 class="text-2xl font-semibold">Members</h1>
 
-                <p class="text-sm text-muted-foreground">Manage cooperative members.</p>
+                <p class="text-muted-foreground text-sm">
+                    Manage cooperative members.
+                </p>
             </div>
 
             <Link
                 href="/members/create"
-                class="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
+                class="bg-primary text-primary-foreground rounded-md px-4 py-2 text-sm font-medium"
             >
                 Add Member
             </Link>
@@ -43,7 +45,7 @@
 
         <div class="overflow-hidden rounded-lg border">
             <table class="w-full text-sm">
-                <thead class="border-b bg-muted/50">
+                <thead class="bg-muted/50 border-b">
                     <tr>
                         <th class="px-4 py-3 text-left">Member No.</th>
                         <th class="px-4 py-3 text-left">Name</th>
@@ -84,7 +86,7 @@
                     <tr v-if="members.data.length === 0">
                         <td
                             colspan="5"
-                            class="px-4 py-8 text-center text-muted-foreground"
+                            class="text-muted-foreground px-4 py-8 text-center"
                         >
                             No members found.
                         </td>
@@ -93,7 +95,7 @@
             </table>
         </div>
 
-        <div class="mt-4 text-sm text-muted-foreground">
+        <div class="text-muted-foreground mt-4 text-sm">
             Showing {{ members.data.length }} of {{ members.total }} members.
         </div>
     </div>

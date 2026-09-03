@@ -16,14 +16,19 @@ class MemberEmployment extends Model
         'is_cuurrent',
     ];
 
-    protected function casts(): array {
+    protected function casts(): array
+    {
         return [
             'date_hired' => 'date',
             'is_current' => 'boolean',
         ];
     }
 
-    public function member(): BelongsTo {
+    /**
+     * @return BelongsTo<Member, $this>
+     */
+    public function member(): BelongsTo
+    {
         return $this->belongsTo(Member::class);
     }
 }

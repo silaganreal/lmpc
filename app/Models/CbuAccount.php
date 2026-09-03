@@ -15,18 +15,27 @@ class CbuAccount extends Model
         'opened_at',
     ];
 
-    protected function casts(): array {
+    protected function casts(): array
+    {
         return [
             'current_balance' => 'decimal:2',
-            'opened_at' => 'date'
+            'opened_at' => 'date',
         ];
     }
 
-    public function member(): BelongsTo {
+    /**
+     * @return BelongsTo<Member, $this>
+     */
+    public function member(): BelongsTo
+    {
         return $this->belongsTo(Member::class);
     }
 
-    public function transactions(): HasMany {
+    /**
+     * @return HasMany<CbuTransaction, $this>
+     */
+    public function transactions(): HasMany
+    {
         return $this->hasMany(CbuTransaction::class);
     }
 }

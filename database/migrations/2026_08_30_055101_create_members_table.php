@@ -24,13 +24,13 @@ return new class extends Migration
 
             $table->date('date_of_birth')->nullable();
 
-            $table->enum('sex', ['male','female'])->nullable();
+            $table->enum('sex', ['male', 'female'])->nullable();
             $table->enum('civil_status', [
                 'single',
                 'married',
                 'widowed',
                 'separated',
-                'divorced'
+                'divorced',
             ])->nullable();
 
             $table->string('nationality')->nullable();
@@ -47,7 +47,7 @@ return new class extends Migration
 
             $table->enum('membership_type', [
                 'regular',
-                'associate'
+                'associate',
             ])->nullable();
 
             $table->date('date_joined')->nullable();
@@ -57,7 +57,7 @@ return new class extends Migration
                 'active',
                 'inactive',
                 'suspended',
-                'terminated'
+                'terminated',
             ])->default('pending');
 
             $table->timestamps();

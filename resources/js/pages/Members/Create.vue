@@ -1,30 +1,30 @@
 <script setup lang="ts">
-    import { Link, useForm } from '@inertiajs/vue3';
+import { Link, useForm } from '@inertiajs/vue3';
 
-    const form = useForm({
-        first_name: '',
-        middle_name: '',
-        last_name: '',
-        suffix: '',
-        date_of_birth: '',
-        sex: '',
-        civil_status: '',
-        nationality: '',
-        religion: '',
-        place_of_birth: '',
-        tin: '',
-        mobile_number: '',
-        telephone_number: '',
-        email: '',
-        residence_type: '',
-        membership_type: '',
-        date_joined: '',
-        status: 'active',
-    })
+const form = useForm({
+    first_name: '',
+    middle_name: '',
+    last_name: '',
+    suffix: '',
+    date_of_birth: '',
+    sex: '',
+    civil_status: '',
+    nationality: '',
+    religion: '',
+    place_of_birth: '',
+    tin: '',
+    mobile_number: '',
+    telephone_number: '',
+    email: '',
+    residence_type: '',
+    membership_type: '',
+    date_joined: '',
+    status: 'active',
+});
 
-    const submit = () => {
-        form.post('/members')
-    }
+const submit = () => {
+    form.post('/members');
+};
 </script>
 
 <template>
@@ -32,37 +32,32 @@
         <div class="mb-6">
             <Link
                 href="/members"
-                class="text-sm text-muted-foreground hover:underline"
+                class="text-muted-foreground text-sm hover:underline"
             >
                 ← Back to Members
             </Link>
 
-            <h1 class="mt-2 text-2xl fort-semibold">
-                Add Member
-            </h1>
+            <h1 class="fort-semibold mt-2 text-2xl">Add Member</h1>
 
-            <p class="text-sm text-muted-foreground">
+            <p class="text-muted-foreground text-sm">
                 Create a new cooperative member.
             </p>
         </div>
 
-        <form
-            @submit.prevent="submit"
-            class="space-y-8"
-        >
+        <form @submit.prevent="submit" class="space-y-8">
             <!-- Personal Information -->
             <section class="rounded-lg border p-6">
-                <h2 class="mb-1 text-lg fort-semibold">
-                    Personal Information
-                </h2>
+                <h2 class="fort-semibold mb-1 text-lg">Personal Information</h2>
 
-                <p class="mb-6 text-sm text-muted-foreground">
+                <p class="text-muted-foreground mb-6 text-sm">
                     Basic information about the member.
                 </p>
 
                 <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
                     <div class="lg:col-span-1">
-                        <label class="mb-2 block text-sm font-medium">First Name</label>
+                        <label class="mb-2 block text-sm font-medium"
+                            >First Name</label
+                        >
                         <input
                             v-model="form.first_name"
                             type="text"
@@ -77,7 +72,9 @@
                     </div>
 
                     <div class="lg:col-span-1">
-                        <label class="mb-2 block text-sm font-medium">Middle Name</label>
+                        <label class="mb-2 block text-sm font-medium"
+                            >Middle Name</label
+                        >
                         <input
                             v-model="form.middle_name"
                             type="text"
@@ -92,7 +89,9 @@
                     </div>
 
                     <div class="lg:col-span-1">
-                        <label class="mb-2 block text-sm font-medium">Last Name</label>
+                        <label class="mb-2 block text-sm font-medium"
+                            >Last Name</label
+                        >
                         <input
                             v-model="form.last_name"
                             type="text"
@@ -107,7 +106,9 @@
                     </div>
 
                     <div>
-                        <label class="mb-2 block text-sm font-medium">Suffix</label>
+                        <label class="mb-2 block text-sm font-medium"
+                            >Suffix</label
+                        >
                         <input
                             v-model="form.suffix"
                             type="text"
@@ -117,7 +118,9 @@
                     </div>
 
                     <div>
-                        <label class="mb-2 block text-sm font-medium">Date of Birth</label>
+                        <label class="mb-2 block text-sm font-medium"
+                            >Date of Birth</label
+                        >
                         <input
                             v-model="form.date_of_birth"
                             type="date"
@@ -126,7 +129,9 @@
                     </div>
 
                     <div>
-                        <label class="mb-2 block text-sm font-medium">Sex</label>
+                        <label class="mb-2 block text-sm font-medium"
+                            >Sex</label
+                        >
                         <select
                             v-model="form.sex"
                             class="w-full rounded-md border px-3 py-2"
@@ -138,7 +143,9 @@
                     </div>
 
                     <div>
-                        <label class="mb-3 block text-sm font-medium">Civil Status</label>
+                        <label class="mb-3 block text-sm font-medium"
+                            >Civil Status</label
+                        >
                         <select
                             v-model="form.civil_status"
                             class="w-full rounded-md border px-3 py-2"
@@ -153,7 +160,9 @@
                     </div>
 
                     <div>
-                        <label class="mb-2 block text-sm font-medium">Nationality</label>
+                        <label class="mb-2 block text-sm font-medium"
+                            >Nationality</label
+                        >
                         <input
                             v-model="form.nationality"
                             type="text"
@@ -162,7 +171,9 @@
                     </div>
 
                     <div>
-                        <label class="mb-2 block text-sm font-medium">Religion</label>
+                        <label class="mb-2 block text-sm font-medium"
+                            >Religion</label
+                        >
                         <input
                             v-model="form.religion"
                             type="text"
@@ -171,7 +182,9 @@
                     </div>
 
                     <div class="md:col-span-2">
-                        <label class="mb-2 block text-sm font-medium">Place of Birth</label>
+                        <label class="mb-2 block text-sm font-medium"
+                            >Place of Birth</label
+                        >
                         <input
                             v-model="form.place_of_birth"
                             type="text"
@@ -185,13 +198,15 @@
             <section class="rounded-lg border p-6">
                 <h2 class="mb-1 text-lg font-semibold">Contact Information</h2>
 
-                <p class="mb-6 text-sm text-muted-foreground">
+                <p class="text-muted-foreground mb-6 text-sm">
                     Contact details of the member.
                 </p>
 
                 <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                     <div>
-                        <label class="mb-2 block text-sm font-medium">Mobile Number</label>
+                        <label class="mb-2 block text-sm font-medium"
+                            >Mobile Number</label
+                        >
                         <input
                             v-model="form.mobile_number"
                             type="text"
@@ -200,7 +215,9 @@
                     </div>
 
                     <div>
-                        <label class="mb-2 block text-sm font-medium">Telephone Number</label>
+                        <label class="mb-2 block text-sm font-medium"
+                            >Telephone Number</label
+                        >
                         <input
                             v-model="form.telephone_number"
                             type="text"
@@ -209,7 +226,9 @@
                     </div>
 
                     <div>
-                        <label class="mb-2 block text-sm font-medium">Email</label>
+                        <label class="mb-2 block text-sm font-medium"
+                            >Email</label
+                        >
                         <input
                             v-model="form.email"
                             type="email"
@@ -224,7 +243,9 @@
                     </div>
 
                     <div>
-                        <label class="mb-2 block text-sm font-medium">TIN</label>
+                        <label class="mb-2 block text-sm font-medium"
+                            >TIN</label
+                        >
                         <input
                             v-model="form.tin"
                             type="text"
@@ -233,7 +254,9 @@
                     </div>
 
                     <div>
-                        <label class="mb-2 block text-sm font-medium">Residence Type</label>
+                        <label class="mb-2 block text-sm font-medium"
+                            >Residence Type</label
+                        >
                         <input
                             v-model="form.residence_type"
                             type="text"
@@ -246,14 +269,18 @@
 
             <!-- Membership Information -->
             <section class="rounded-lg border p-6">
-                <h2 class="mb-1 text-lg font-semibold">Membership Information</h2>
-                <p class="mb-6 text-sm text-muted-foreground">
+                <h2 class="mb-1 text-lg font-semibold">
+                    Membership Information
+                </h2>
+                <p class="text-muted-foreground mb-6 text-sm">
                     Cooperative membership details.
                 </p>
 
                 <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                     <div>
-                        <label class="mb-2 block text-sm font-medium">Membership Type</label>
+                        <label class="mb-2 block text-sm font-medium"
+                            >Membership Type</label
+                        >
                         <select
                             v-model="form.membership_type"
                             class="w-full rounded-md border px-3 py-2"
@@ -265,7 +292,9 @@
                     </div>
 
                     <div>
-                        <label class="mb-2 block text-sm font-medium">Date Joined</label>
+                        <label class="mb-2 block text-sm font-medium"
+                            >Date Joined</label
+                        >
                         <input
                             v-model="form.date_joined"
                             type="date"
@@ -274,7 +303,9 @@
                     </div>
 
                     <div>
-                        <label class="mb-2 block text-sm font-medium">Status</label>
+                        <label class="mb-2 block text-sm font-medium"
+                            >Status</label
+                        >
                         <select
                             v-model="form.status"
                             class="w-full rounded-md border px-3 py-2"
@@ -282,7 +313,7 @@
                             <option value="pending">Pending</option>
                             <option value="active">Active</option>
                             <option value="inactive">Inactive</option>
-                            <option value="suspended">Suspended </option>
+                            <option value="suspended">Suspended</option>
                             <option value="terminated">Terminated</option>
                         </select>
                     </div>
@@ -293,7 +324,7 @@
             <div class="flex justify-end gap-3">
                 <Link
                     href="/members"
-                    class="rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted"
+                    class="hover:bg-muted rounded-md border px-4 py-2 text-sm font-medium"
                 >
                     Cancel
                 </Link>
@@ -301,12 +332,11 @@
                 <button
                     type="submit"
                     :disabled="form.processing"
-                    class="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
+                    class="bg-primary text-primary-foreground rounded-md px-4 py-2 text-sm font-medium disabled:opacity-50"
                 >
                     {{ form.processing ? 'Creating...' : 'Create Member' }}
                 </button>
             </div>
-
         </form>
     </div>
 </template>

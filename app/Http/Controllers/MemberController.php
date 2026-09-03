@@ -12,23 +12,26 @@ use Inertia\Response;
 
 class MemberController extends Controller
 {
-    public function index(): Response {
+    public function index(): Response
+    {
         $members = Member::query()
             ->orderBy('last_name')
             ->orderBy('first_name')
             ->paginate(15)
             ->withQueryString();
-        
+
         return Inertia::render('Members/Index', [
             'members' => $members,
         ]);
     }
 
-    public function create(): Response {
+    public function create(): Response
+    {
         return Inertia::render('Members/Create');
     }
 
-    public function store(StoreMemberRequest $request): RedirectResponse {
+    public function store(StoreMemberRequest $request): RedirectResponse
+    {
         $validated = $request->validated();
 
         $validated['member_no'] = $this->generateMemberNumber();
@@ -38,7 +41,8 @@ class MemberController extends Controller
         return redirect()->route('members.index')->with('success', 'Member created successfully.');
     }
 
-    public function show(Member $member): Response {
+    public function show(Member $member): Response
+    {
         $member->load([
             'addresses',
             'familyMembers',
@@ -53,19 +57,23 @@ class MemberController extends Controller
         ]);
     }
 
-    public function edit(Member $member): Response {
+    public function edit(Member $member): Response
+    {
         return Inertia::render('Members/Edit', [
             'member' => $member,
         ]);
     }
 
-    public function update(UpdateMemberRequest $request, Member $member): RedirectResponse {
+    public function update(UpdateMemberRequest $request, Member $member): RedirectResponse
+    {
+        $validated = $request->validated();
         $member->update($request->$validated);
 
         return redirect()->route('members.show', $member)->with('success', 'Member updated successfully.');
     }
 
-    public function destroy(Member $member): RedirectResponse {
+    public function destroy(Member $member): RedirectResponse
+    {
         $member->update([
             'status' => 'inactive',
         ]);
@@ -73,7 +81,8 @@ class MemberController extends Controller
         return redirect()->route('members.index')->with('success', 'Member deactivated successfully.');
     }
 
-    private function generateMemberNumber(): string {
+    private function generateMemberNumber(): string
+    {
         $year = now()->year;
 
         $lastMember = Member::query()

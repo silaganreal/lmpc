@@ -18,21 +18,30 @@ class MembershipApplicationDocument extends Model
         'remarks',
     ];
 
-    protected function casts(): array {
+    protected function casts(): array
+    {
         return [
             'submitted_at' => 'datetime',
             'verified_at' => 'datetime',
         ];
     }
 
-    public function membershipApplication(): BelongsTo {
+    /**
+     * @return BelongsTo<MembershipApplication, $this>
+     */
+    public function membershipApplication(): BelongsTo
+    {
         return $this->belongsTo(
             MembershipApplication::class,
             'membership_application_id'
         );
     }
 
-    public function verifiedBy(): BelongsTo {
+    /**
+     * @return BelongsTo<User, $this>
+     */
+    public function verifiedBy(): BelongsTo
+    {
         return $this->belongsTo(
             User::class,
             'verified_by'

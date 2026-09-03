@@ -15,7 +15,11 @@ class MemberEducation extends Model
         'year_graduated',
     ];
 
-    public function member(): BelongsTo {
+    /**
+     * @return BelongsTo<Member, $this>
+     */
+    public function member(): BelongsTo
+    {
         return $this->belongsTo(Member::class);
     }
 }

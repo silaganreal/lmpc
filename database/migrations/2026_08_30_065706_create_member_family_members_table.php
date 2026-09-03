@@ -24,7 +24,7 @@ return new class extends Migration
             $table->string('last_name');
 
             $table->date('date_of_birth')->nullable();
-            $table->enum('sex', ['male','female'])->nullable();
+            $table->enum('sex', ['male', 'female'])->nullable();
             $table->string('contact_number')->nullable();
 
             $table->boolean('is_lbmpc_member')->default(false);

@@ -31,7 +31,7 @@ return new class extends Migration
             $table->enum('address_type', [
                 'permanent',
                 'present',
-                'mailing'
+                'mailing',
             ])->default('permanent');
 
             $table->boolean('is_primary')->default(false);

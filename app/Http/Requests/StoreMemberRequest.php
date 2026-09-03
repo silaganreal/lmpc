@@ -46,7 +46,7 @@ class StoreMemberRequest extends FormRequest
             'nationality' => ['nullable', 'string', 'max:100'],
             'religion' => ['nullable', 'string', 'max:100'],
             'place_of_birth' => ['nullable', 'string', 'max:255'],
-            
+
             'tin' => ['nullable', 'string', 'max:50'],
 
             'mobile_number' => ['nullable', 'string', 'max:30'],
@@ -70,8 +70,8 @@ class StoreMemberRequest extends FormRequest
                     'inactive',
                     'suspended',
                     'terminated',
-                ])
-            ]
+                ]),
+            ],
         ];
     }
 }

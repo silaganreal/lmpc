@@ -10,7 +10,8 @@ use InvalidArgumentException;
 
 class ShareCapitalService
 {
-    public function createAccount(Member $member): ShareAccount {
+    public function createAccount(Member $member): ShareAccount
+    {
         return ShareAccount::firstOrCreate(
             ['member_id' => $member->id],
             [
@@ -48,7 +49,7 @@ class ShareCapitalService
             $account = ShareAccount::whereKey($account->id)
                 ->lockForUpdate()
                 ->first();
-            
+
             $transaction = $account->transactions()->create([
                 'transaction_date' => now(),
                 'transaction_type' => 'payment',
@@ -56,7 +57,7 @@ class ShareCapitalService
                 'reference_no' => $referenceNo,
                 'description' => $description,
                 'amount' => $amount,
-                'created_by' => $createdBy
+                'created_by' => $createdBy,
             ]);
 
             $account->increment('paid_up_amount', $amount);
@@ -98,7 +99,7 @@ class ShareCapitalService
             $account = ShareAccount::whereKey($account->id)
                 ->lockForUpdate()
                 ->first();
-            
+
             $transaction = $account->transactions()->create([
                 'transaction_date' => now(),
                 'transaction_type' => 'subscription',
@@ -106,7 +107,7 @@ class ShareCapitalService
                 'reference_no' => $referenceNo,
                 'description' => $description,
                 'amount' => $amount,
-                'created_by' => $createdBy
+                'created_by' => $createdBy,
             ]);
 
             $account->increment('shares_subscribed', $shares);
