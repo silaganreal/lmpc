@@ -19,6 +19,11 @@ Route::middleware(['auth'])->group(function () {
     )->name('members.reactivate');
 
     Route::resource('membership-applications', MembershipApplicationController::class);
+
+    Route::patch(
+        'membership-applications/{membershipApplication}/submit',
+        [MembershipApplicationController::class, 'submit']
+    )->name('membership-applications.submit');
 });
 
 require __DIR__.'/settings.php';

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Member;
 use App\Models\MembershipApplication;
+use App\Services\Membership\MembershipApplicationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -11,6 +12,10 @@ use Inertia\Response;
 
 class MembershipApplicationController extends Controller
 {
+    public function __construct(
+        private MembershipApplicationService $membershipApplicationService
+    ) {}
+
     /**
      * Display a listing of membership applications.
      */
@@ -68,10 +73,7 @@ class MembershipApplicationController extends Controller
             'remarks' => ['nullable', 'string'],
         ]);
 
-        $validated['application_no'] = $this->generateApplicationNumber();
-        $validated['status'] = 'draft';
-
-        $application = MembershipApplication::create($validated);
+        $application = $this->membershipApplicationService->createApplication($validated);
 
         return redirect()
             ->route('membership-applications.show', $application)
@@ -97,6 +99,20 @@ class MembershipApplicationController extends Controller
         return Inertia::render('MembershipApplications/Show', [
             'application' => $membershipApplication,
         ]);
+    }
+
+    /**
+     * Submit draft applications.
+     */
+    public function submit(
+        MembershipApplication $membershipApplication
+    ): RedirectResponse {
+        $this->membershipApplicationService
+            ->submitApplication($membershipApplication);
+
+        return redirect()
+            ->route('membership-applications.show', $membershipApplication)
+            ->with('success', 'Membership application submitted successfully.');
     }
 
     /**
@@ -164,24 +180,5 @@ class MembershipApplicationController extends Controller
         return redirect()
             ->route('membership-applications.index')
             ->with('success', 'Membership application cancelled successfully.');
-    }
-
-    /**
-     * Generate the next membership application number.
-     */
-    private function generateApplicationNumber(): string
-    {
-        $year = now()->year;
-
-        $lastApplication = MembershipApplication::query()
-            ->where('application_no', 'like', "APP-{$year}-%")
-            ->latest('id')
-            ->first();
-
-        $nextNumber = $lastApplication
-            ? ((int) substr($lastApplication->application_no, -6)) + 1
-            : 1;
-
-        return sprintf('APP-%d-%06d', $year, $nextNumber);
     }
 }

@@ -52,11 +52,11 @@ const getStatusClass = (status: string) => {
 };
 
 const formatDate = (date: string) => {
-    return new Date(date).toLocaleDateString('en-PH', {
-        year: 'numeric',
-        month: 'short',
+    return new Intl.DateTimeFormat('en-US', {
+        month: 'long',
         day: 'numeric',
-    });
+        year: 'numeric',
+    }).format(new Date(date));
 };
 
 const formatAmount = (amount: string | number) => {
@@ -146,7 +146,7 @@ const membersName = (member: Member | null) => {
 
                 <Link
                     href="/membership-applications/create"
-                    class="iniline-flex bg-primary text-primary-foreground hover:bg-primary/90 mt-5 items-center rounded-md px-4 py-2 text-sm font-medium"
+                    class="bg-primary text-primary-foreground hover:bg-primary/90 mt-5 inline-flex items-center rounded-md px-4 py-2 text-sm font-medium"
                 >
                     Create Application
                 </Link>
@@ -208,7 +208,9 @@ const membersName = (member: Member | null) => {
                             </td>
 
                             <td class="text-muted-foreground px-6 py-4">
-                                {{ application.date_of_application }}
+                                {{
+                                    formatDate(application.date_of_application)
+                                }}
                             </td>
 
                             <td class="px-6 py-4 capitalize">
