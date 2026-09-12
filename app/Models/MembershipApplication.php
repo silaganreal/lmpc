@@ -23,7 +23,9 @@ class MembershipApplication extends Model
         'status',
         'processed_by',
         'approved_by',
+        'reviewed_by',
         'processed_at',
+        'reviewed_at',
         'approved_at',
         'remarks',
     ];
@@ -34,6 +36,7 @@ class MembershipApplication extends Model
             'date_of_application' => 'date',
             'board_approval_date' => 'date',
             'processed_at' => 'datetime',
+            'reviewed_at' => 'datetime',
             'approved_at' => 'datetime',
             'shares_subscribed' => 'integer',
             'amount_subscribed' => 'decimal:2',
@@ -71,5 +74,13 @@ class MembershipApplication extends Model
     public function documents(): HasMany
     {
         return $this->hasMany(MembershipApplicationDocument::class);
+    }
+
+    /**
+     * @return BelongsTo<User, $this>
+     */
+    public function reviewedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'reviewed_by');
     }
 }

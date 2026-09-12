@@ -11,6 +11,7 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import Button from '@/components/ui/button/Button.vue';
 
 interface Member {
     id: number;
@@ -93,6 +94,14 @@ const statusClass = (status: string) => {
 const submitApplication = (applicationId: number) => {
     router.patch(`/membership-applications/${applicationId}/submit`);
 };
+
+const startReview = (applicationId: number) => {
+    router.patch(`/membership-applications/${applicationId}/review`);
+};
+
+const approveApplication = (applicationId: number) => {
+    router.patch(`/membership-applications/${applicationId}/approve`);
+};
 </script>
 
 <template>
@@ -129,6 +138,7 @@ const submitApplication = (applicationId: number) => {
                     Edit Application
                 </Link>
 
+                <!-- Submit application dialog -->
                 <AlertDialog v-if="application.status === 'draft'">
                     <AlertDialogTrigger as-child>
                         <button
@@ -158,6 +168,73 @@ const submitApplication = (applicationId: number) => {
                                 @click="submitApplication(application.id)"
                             >
                                 Submit Application
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
+
+                <!-- Review application dialog -->
+                <AlertDialog v-if="application.status === 'submitted'">
+                    <AlertDialogTrigger as-child>
+                        <button
+                            type="button"
+                            class="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition"
+                        >
+                            Start Review
+                        </button>
+                    </AlertDialogTrigger>
+
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>
+                                Start Application Review?
+                            </AlertDialogTitle>
+
+                            <AlertDialogDescription>
+                                This will move the membership application into
+                                review and record you as the reviewer.
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+
+                        <AlertDialogFooter>
+                            <AlertDialogCancel> Cancel </AlertDialogCancel>
+
+                            <AlertDialogAction
+                                @click="startReview(application.id)"
+                            >
+                                Start Review
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
+
+                <!-- Approve application dialog -->
+                <AlertDialog v-if="application.status === 'under_review'">
+                    <AlertDialogTrigger as-child>
+                        <Button> Approve Application </Button>
+                    </AlertDialogTrigger>
+
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>
+                                Approve Membership Application?
+                            </AlertDialogTitle>
+
+                            <AlertDialogDescription>
+                                This will approve the membership application and
+                                record you as the approving user. This action
+                                will not create financial transactions
+                                automatically.
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+
+                        <AlertDialogFooter>
+                            <AlertDialogCancel> Cancel </AlertDialogCancel>
+
+                            <AlertDialogAction
+                                @click="approveApplication(application.id)"
+                            >
+                                Approve Application
                             </AlertDialogAction>
                         </AlertDialogFooter>
                     </AlertDialogContent>

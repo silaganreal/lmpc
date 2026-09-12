@@ -181,4 +181,48 @@ class MembershipApplicationController extends Controller
             ->route('membership-applications.index')
             ->with('success', 'Membership application cancelled successfully.');
     }
+
+    /**
+     * Move a submitted application into review.
+     */
+    public function review(
+        MembershipApplication $membershipApplication
+    ): RedirectResponse {
+        $this->membershipApplicationService->startReview(
+            $membershipApplication,
+            (int) auth()->id()
+        );
+
+        return redirect()
+            ->route(
+                'membership-applications.show',
+                $membershipApplication
+            )
+            ->with(
+                'success',
+                'Membership application is now under review.'
+            );
+    }
+
+    /**
+     * Approve a membership application.
+     */
+    public function approve(
+        MembershipApplication $membershipApplication
+    ): RedirectResponse {
+        $this->membershipApplicationService->approveApplication(
+            $membershipApplication,
+            (int) auth()->id()
+        );
+
+        return redirect()
+            ->route(
+                'membership-applications.show',
+                $membershipApplication
+            )
+            ->with(
+                'success',
+                'Membership application approved successfully.'
+            );
+    }
 }

@@ -24,6 +24,16 @@ Route::middleware(['auth'])->group(function () {
         'membership-applications/{membershipApplication}/submit',
         [MembershipApplicationController::class, 'submit']
     )->name('membership-applications.submit');
+
+    Route::patch(
+        'membership-applications/{membershipApplication}/review',
+        [MembershipApplicationController::class, 'review']
+    )->name('membership-applications.review');
+
+    Route::patch(
+        'membership-applications/{membershipApplication}/approve',
+        [MembershipApplicationController::class, 'approve']
+    )->name('membership-applications.approve');
 });
 
 require __DIR__.'/settings.php';

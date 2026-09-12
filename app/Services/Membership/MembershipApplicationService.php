@@ -57,4 +57,48 @@ class MembershipApplicationService
 
         return sprintf('APP-%d-%06d', $year, $nextNumber);
     }
+
+    /**
+     * Move a submitted membership application into review.
+     */
+    public function startReview(
+        MembershipApplication $application,
+        int $reviewedBy
+    ): MembershipApplication {
+        if ($application->status !== 'submitted') {
+            throw new \LogicException(
+                'Only submitted applications can be moved to review.'
+            );
+        }
+
+        $application->update([
+            'status' => 'under_review',
+            'reviewed_by' => $reviewedBy,
+            'reviewed_at' => now(),
+        ]);
+
+        return $application->fresh();
+    }
+
+    /**
+     * Approve a membership application.
+     */
+    public function approveApplication(
+        MembershipApplication $application,
+        int $approvedBy
+    ): MembershipApplication {
+        if ($application->status !== 'under_review') {
+            throw new \LogicException(
+                'Only applications under review can be approved.'
+            );
+        }
+
+        $application->update([
+            'status' => 'approved',
+            'approved_by' => $approvedBy,
+            'approved_at' => now(),
+        ]);
+
+        return $application->fresh();
+    }
 }
