@@ -48,8 +48,8 @@ class MemberController extends Controller
             'familyMembers',
             'educations',
             'employments',
-            'shareAccount',
-            'cbuAccount',
+            'shareAccount.transactions',
+            'cbuAccount.transactions',
         ]);
 
         return Inertia::render('Members/Show', [

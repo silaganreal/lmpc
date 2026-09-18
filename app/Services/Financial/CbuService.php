@@ -25,6 +25,7 @@ class CbuService
     public function contribute(
         Member $member,
         float $amount,
+        string $transactionDate,
         ?string $referenceNo = null,
         ?string $description = null,
         ?int $createdBy = null
@@ -38,6 +39,7 @@ class CbuService
         return DB::transaction(function () use (
             $member,
             $amount,
+            $transactionDate,
             $referenceNo,
             $description,
             $createdBy,
@@ -45,7 +47,7 @@ class CbuService
             $account = $this->createAccount($member);
 
             $transaction = $account->transactions()->create([
-                'transaction_date' => now(),
+                'transaction_date' => $transactionDate,
                 'transaction_type' => 'contribution',
                 'direction' => 'credit',
                 'reference_no' => $referenceNo,

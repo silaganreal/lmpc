@@ -17,14 +17,12 @@ class ShareAccount extends Model
         'opened_at',
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'total_subscribed_amount' => 'decimal:2',
-            'paid_up_amount' => 'decimal:2',
-            'opened_at' => 'date',
-        ];
-    }
+    protected $casts = [
+        'shares_subscribed' => 'integer',
+        'total_subscribed_amount' => 'decimal:2',
+        'paid_up_amount' => 'decimal:2',
+        'opened_at' => 'date',
+    ];
 
     /**
      * @return BelongsTo<Member, $this>

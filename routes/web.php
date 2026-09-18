@@ -1,7 +1,9 @@
 <?php
 
+use App\Http\Controllers\CbuController;
 use App\Http\Controllers\MemberController;
 use App\Http\Controllers\MembershipApplicationController;
+use App\Http\Controllers\ShareCapitalController;
 use Illuminate\Support\Facades\Route;
 
 Route::inertia('/', 'Welcome')->name('home');
@@ -34,6 +36,26 @@ Route::middleware(['auth'])->group(function () {
         'membership-applications/{membershipApplication}/approve',
         [MembershipApplicationController::class, 'approve']
     )->name('membership-applications.approve');
+
+    Route::get(
+        'members/{member}/share-capital/create',
+        [ShareCapitalController::class, 'create']
+    )->name('share-capital.create');
+
+    Route::post(
+        'members/{member}/share-capital',
+        [ShareCapitalController::class, 'store']
+    )->name('share-capital.store');
+
+    Route::get(
+        'members/{member}/cbu/create',
+        [CbuController::class, 'create']
+    )->name('cbu.create');
+
+    Route::post(
+        'members/{member}/cbu',
+        [CbuController::class, 'store']
+    )->name('cbu.store');
 });
 
 require __DIR__.'/settings.php';

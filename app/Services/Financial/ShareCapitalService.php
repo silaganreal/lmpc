@@ -27,6 +27,7 @@ class ShareCapitalService
     public function recordPayment(
         Member $member,
         float $amount,
+        string $transactionDate,
         ?string $referenceNo = null,
         ?string $description = null,
         ?int $createdBy = null
@@ -40,6 +41,7 @@ class ShareCapitalService
         return DB::transaction(function () use (
             $member,
             $amount,
+            $transactionDate,
             $referenceNo,
             $description,
             $createdBy
@@ -51,7 +53,7 @@ class ShareCapitalService
                 ->first();
 
             $transaction = $account->transactions()->create([
-                'transaction_date' => now(),
+                'transaction_date' => $transactionDate,
                 'transaction_type' => 'payment',
                 'direction' => 'credit',
                 'reference_no' => $referenceNo,

@@ -11,6 +11,7 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import Button from '@/components/ui/button/Button.vue';
 
 interface Address {
     id: number;
@@ -57,20 +58,38 @@ interface Employment {
     is_current: boolean;
 }
 
-interface ShareAccount {
+interface ShareTransaction {
     id: number;
+    transaction_date: string;
+    transaction_type: string;
+    direction: string;
+    reference_no?: string | null;
+    description?: string | null;
+    amount: number | string;
+}
+
+interface ShareAccount {
     shares_subscribed: number;
     total_subscribed_amount: number;
     paid_up_amount: number;
     status: string;
-    opened_at: string;
+    transactions?: ShareTransaction[];
+}
+
+interface CbuTransaction {
+    id: number;
+    transaction_date: string;
+    transaction_type: string;
+    direction: string;
+    reference_no?: string | null;
+    description?: string | null;
+    amount: number | string;
 }
 
 interface CbuAccount {
-    id: number;
-    current_balance: number;
+    current_balance: number | string;
     status: string;
-    opened_at: string;
+    transactions?: CbuTransaction[];
 }
 
 interface Member {
@@ -128,15 +147,15 @@ const formatDate = (date: string | null) => {
     });
 };
 
-const formatAmount = (amount: number | null | undefined) => {
-    if (amount === null || amount === undefined) {
+const formatAmount = (amount: number | string | null | undefined) => {
+    if (amount === null || amount === undefined || amount === '') {
         return '₱0.00';
     }
 
     return new Intl.NumberFormat('en-PH', {
         style: 'currency',
         currency: 'PHP',
-    }).format(amount);
+    }).format(Number(amount));
 };
 
 const fullName = (member: Member) => {
@@ -275,6 +294,7 @@ const primaryAddress = (member: Member) => {
 
         <!-- Basic Information -->
         <div class="grid gap-6 lg:grid-cols-3">
+            <!-- Personal Information -->
             <div
                 class="bg-card overflow-hidden rounded-xl border shadow-sm lg:col-span-2"
             >
@@ -401,6 +421,192 @@ const primaryAddress = (member: Member) => {
                         </p>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <!-- Share Capital Transaction -->
+        <div class="bg-card rounded-lg border p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-lg font-semibold">
+                        Share Capital Transactions
+                    </h2>
+
+                    <p class="text-muted-foreground mt-1 text-sm">
+                        Transaction history for this member's share capital.
+                    </p>
+                </div>
+
+                <Link :href="`/members/${member.id}/share-capital/create`">
+                    <Button> Record Payment </Button>
+                </Link>
+            </div>
+
+            <div
+                v-if="member.share_account?.transactions?.length"
+                class="mt-6 overflow-x-auto"
+            >
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="border-b text-left">
+                            <th class="px-3 py-3 font-medium">Date</th>
+                            <th class="px-3 py-3 font-medium">Type</th>
+                            <th class="px-3 py-3 font-medium">Reference No.</th>
+                            <th class="px-3 py-3 font-medium">Description</th>
+                            <th class="px-3 py-3 text-right font-medium">
+                                Amount
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr
+                            v-for="transaction in member.share_account
+                                .transactions"
+                            :key="transaction.id"
+                            class="border-b last:border-0"
+                        >
+                            <td class="px-3 py-3">
+                                {{ transaction.transaction_date }}
+                            </td>
+                            <td class="px-3 py-3 capitalize">
+                                {{ transaction.transaction_type }}
+                            </td>
+                            <td class="px-3 py-3">
+                                {{ transaction.reference_no || '-' }}
+                            </td>
+                            <td class="px-3 py-3">
+                                {{ transaction.description || '-' }}
+                            </td>
+                            <td class="px-3 py-3 text-right font-medium">
+                                ₱{{
+                                    Number(transaction.amount).toLocaleString(
+                                        'en-PH',
+                                        {
+                                            minimumFractionDigits: 2,
+                                            maximumFractionDigits: 2,
+                                        },
+                                    )
+                                }}
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div
+                v-else
+                class="mt-6 rounded-md border border-dashed p-8 text-center"
+            >
+                <p class="text-muted-foreground text-sm">
+                    No share capital transactions recorded yet.
+                </p>
+            </div>
+        </div>
+
+        <!-- CBU -->
+        <div class="bg-card rounded-lg border p-6">
+            <div class="flex items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-lg font-semibold">
+                        Capital Build-Up (CBU)
+                    </h2>
+
+                    <p class="text-muted-foreground text-sm">
+                        Member's current CBU balance and transaction history.
+                    </p>
+                </div>
+
+                <Link :href="`/members/${member.id}/cbu/create`">
+                    <Button> Record Contribution </Button>
+                </Link>
+            </div>
+
+            <div class="mt-6">
+                <p class="text-muted-foreground text-sm">Current CBU Balance</p>
+
+                <p class="text-2xl font-semibold">
+                    ₱{{
+                        Number(
+                            member.cbu_account?.current_balance ?? 0,
+                        ).toLocaleString('en-PH', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                        })
+                    }}
+                </p>
+            </div>
+
+            <div class="mt-6 overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="border-b text-left">
+                            <th class="px-3 py-2 font-medium">Date</th>
+                            <th class="px-3 py-2 font-medium">Transaction</th>
+                            <th class="px-3 py-2 font-medium">Reference No.</th>
+                            <th class="px-3 py-2 font-medium">Description</th>
+                            <th class="px-3 py-2 text-right font-medium">
+                                Amount
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr
+                            v-for="transaction in member.cbu_account
+                                ?.transactions ?? []"
+                            :key="transaction.id"
+                            class="border-b last:border-0"
+                        >
+                            <td class="px-3 py-2">
+                                {{ transaction.transaction_date }}
+                            </td>
+                            <td class="px-3 py-2 capitalize">
+                                {{
+                                    transaction.transaction_type.replaceAll(
+                                        '_',
+                                        ' ',
+                                    )
+                                }}
+                            </td>
+                            <td class="px-3 py-2">
+                                {{ transaction.reference_no || '-' }}
+                            </td>
+                            <td class="px-3 py-2">
+                                {{ transaction.description || '-' }}
+                            </td>
+                            <td class="px-3 py-2 text-right font-medium">
+                                <span
+                                    :class="
+                                        transaction.direction === 'credit'
+                                            ? 'text-green-600'
+                                            : 'text-red-600'
+                                    "
+                                >
+                                    {{
+                                        transaction.direction === 'credit'
+                                            ? '+'
+                                            : '-'
+                                    }}₱{{
+                                        Number(
+                                            transaction.amount,
+                                        ).toLocaleString('en-PH', {
+                                            minimumFractionDigits: 2,
+                                            maximumFractionDigits: 2,
+                                        })
+                                    }}
+                                </span>
+                            </td>
+                        </tr>
+
+                        <tr v-if="!member.cbu_account?.transactions?.length">
+                            <td
+                                colspan="5"
+                                class="text-muted-foreground px-3 py-6 text-center"
+                            >
+                                No CBU transaction found.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
 
