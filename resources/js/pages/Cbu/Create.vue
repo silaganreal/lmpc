@@ -41,7 +41,7 @@ const submit = () => {
 <template>
     <Head title="Record CBU Certification" />
 
-    <div class="space-y-6">
+    <div class="space-y-6 p-6">
         <div>
             <Link
                 :href="`/members/${member.id}`"
