@@ -86,4 +86,20 @@ class Member extends Model
     {
         return $this->hasOne(CbuAccount::class);
     }
+
+    /**
+     * @return HasOne<SavingsAccount, $this>
+     */
+    public function savingsAccount(): HasOne
+    {
+        return $this->hasOne(SavingsAccount::class);
+    }
+
+    /**
+     * @return HasMany<Loan, $this>
+     */
+    public function loans(): HasMany
+    {
+        return $this->hasMany(Loan::class);
+    }
 }

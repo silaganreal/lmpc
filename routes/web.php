@@ -3,6 +3,7 @@
 use App\Http\Controllers\CbuController;
 use App\Http\Controllers\MemberController;
 use App\Http\Controllers\MembershipApplicationController;
+use App\Http\Controllers\SavingsController;
 use App\Http\Controllers\ShareCapitalController;
 use Illuminate\Support\Facades\Route;
 
@@ -56,6 +57,19 @@ Route::middleware(['auth'])->group(function () {
         'members/{member}/cbu',
         [CbuController::class, 'store']
     )->name('cbu.store');
+
+    Route::get('members/{member}/savings/deposit', [SavingsController::class, 'createDeposit'])
+        ->name('savings.deposit.create');
+
+    Route::post('members/{member}/savings/deposit', [SavingsController::class, 'deposit'])
+        ->name('savings.deposit');
+
+    Route::get('members/{member}/savings/withdrawal', [SavingsController::class, 'createWithdrawal'])
+        ->name('savings.withdrawal.create');
+
+    Route::post('members/{member}/savings/withdrawal', [SavingsController::class, 'withdraw'])
+        ->name('savings.withdrawal');
+
 });
 
 require __DIR__.'/settings.php';

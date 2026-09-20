@@ -50,6 +50,7 @@ class MemberController extends Controller
             'employments',
             'shareAccount.transactions',
             'cbuAccount.transactions',
+            'savingsAccount.transactions',
         ]);
 
         return Inertia::render('Members/Show', [

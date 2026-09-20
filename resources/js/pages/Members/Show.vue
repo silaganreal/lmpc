@@ -92,6 +92,27 @@ interface CbuAccount {
     transactions?: CbuTransaction[];
 }
 
+interface SavingsTransaction {
+    id: number;
+    transaction_date: string;
+    transaction_type: string;
+    direction: string;
+    reference_no?: string | null;
+    description?: string | null;
+    amount: number | string;
+}
+
+interface SavingsAccount {
+    id: number;
+    account_number: string;
+    account_type: string;
+    current_balance: number | string;
+    status: string;
+    opened_at?: string | null;
+    closed_at?: string | null;
+    transactions?: SavingsTransaction[];
+}
+
 interface Member {
     id: number;
     member_no: string;
@@ -121,6 +142,7 @@ interface Member {
     employments: Employment[];
     share_account: ShareAccount | null;
     cbu_account: CbuAccount | null;
+    savings_account?: SavingsAccount | null;
 }
 
 defineProps<{
@@ -149,7 +171,7 @@ const formatDate = (date: string | null) => {
 
 const formatAmount = (amount: number | string | null | undefined) => {
     if (amount === null || amount === undefined || amount === '') {
-        return '₱0.00';
+        return '0.00';
     }
 
     return new Intl.NumberFormat('en-PH', {
@@ -607,6 +629,149 @@ const primaryAddress = (member: Member) => {
                         </tr>
                     </tbody>
                 </table>
+            </div>
+        </div>
+
+        <!-- Savings -->
+        <div class="bg-card space-y-4 rounded-xl border p-6 shadow-sm">
+            <div
+                class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+            >
+                <div>
+                    <h2 class="text-lg font-semibold">Savings</h2>
+
+                    <p class="text-muted-foreground text-sm">
+                        Regular savings account and transaction history.
+                    </p>
+                </div>
+
+                <div class="flex flex-wrap gap-2">
+                    <a
+                        :href="`/members/${member.id}/savings/deposit`"
+                        class="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center rounded-md px-4 py-2 text-sm font-medium"
+                    >
+                        Record Deposit
+                    </a>
+
+                    <a
+                        :href="`/members/${member.id}/savings/withdrawal`"
+                        class="hover:bg-muted inline-flex items-center rounded-md border px-4 py-2 text-sm font-medium"
+                    >
+                        Record Withdrawal
+                    </a>
+                </div>
+            </div>
+
+            <div class="grid gap-4 md:grid-cols-3">
+                <div class="rounded-lg border p-4">
+                    <p class="text-muted-foreground text-xs">Account Number</p>
+
+                    <p class="mt-1 font-medium">
+                        {{
+                            member.savings_account?.account_number ??
+                            'Not yet created'
+                        }}
+                    </p>
+                </div>
+
+                <div class="rounded-lg border p-4">
+                    <p class="text-muted-foreground text-xs">Current Balance</p>
+
+                    <p class="mt-1 text-xl font-bold">
+                        {{
+                            formatAmount(
+                                member.savings_account?.current_balance,
+                            )
+                        }}
+                    </p>
+                </div>
+
+                <div class="rounded-lg border p-4">
+                    <p class="text-muted-foreground text-xs">Status</p>
+
+                    <p class="mt-1 font-medium capitalize">
+                        {{
+                            member.savings_account?.status ?? 'Not yet created'
+                        }}
+                    </p>
+                </div>
+            </div>
+
+            <div>
+                <h3 class="mb-3 text-sm font-semibold">Transaction History</h3>
+
+                <div
+                    v-if="member.savings_account?.transactions?.length"
+                    class="overflow-x-auto rounded-lg border"
+                >
+                    <table class="w-full text-sm">
+                        <thead class="bg-muted/50">
+                            <tr class="border-b">
+                                <th class="px-4 py-3 text-left font-medium">
+                                    Date
+                                </th>
+                                <th class="px-4 py-3 text-left font-medium">
+                                    Type
+                                </th>
+                                <th class="px-4 py-3 text-left font-medium">
+                                    Reference
+                                </th>
+                                <th class="px-4 py-3 text-left font-medium">
+                                    Description
+                                </th>
+                                <th class="px-4 py-3 text-right font-medium">
+                                    Amount
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr
+                                v-for="transaction in member.savings_account
+                                    .transactions"
+                                :key="transaction.id"
+                                class="border-b last:border-b-0"
+                            >
+                                <td class="px-4 py-3">
+                                    {{
+                                        new Date(
+                                            transaction.transaction_date,
+                                        ).toLocaleDateString('en-PH')
+                                    }}
+                                </td>
+                                <td class="px-4 py-3 capitalize">
+                                    {{ transaction.transaction_type }}
+                                </td>
+                                <td class="px-4 py-3">
+                                    {{ transaction.reference_no ?? '-' }}
+                                </td>
+                                <td class="px-4 py-3">
+                                    {{ transaction.description ?? '-' }}
+                                </td>
+                                <td
+                                    class="px-4 py-3 text-right font-medium"
+                                    :class="
+                                        transaction.direction === 'credit'
+                                            ? 'text-green-600'
+                                            : 'text-red-600'
+                                    "
+                                >
+                                    {{
+                                        transaction.direction === 'credit'
+                                            ? '+ '
+                                            : '- '
+                                    }}{{ formatAmount(transaction.amount) }}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <p
+                    v-else
+                    class="text-muted-foreground rounded-lg border border-dashed p-6 text-center text-sm"
+                >
+                    No savings transactions recorded yet.
+                </p>
             </div>
         </div>
 
