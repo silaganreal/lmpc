@@ -52,7 +52,7 @@ class Loan extends Model
             'cbu_retention' => 'decimal:2',
             'insurance_premium' => 'decimal:2',
             'notarial_fee' => 'decimal:2',
-            'net_proceeds' => 'decimal:2',
+            'net_process' => 'decimal:2',
         ];
     }
 

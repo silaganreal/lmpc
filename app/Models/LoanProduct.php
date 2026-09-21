@@ -23,7 +23,7 @@ class LoanProduct extends Model
         return [
             'interest_rate_monthly' => 'decimal:2',
             'maximum_amount' => 'decimal:2',
-            'maximum_term_months' => 'interger',
+            'maximum_term_months' => 'integer',
             'is_active' => 'boolean',
         ];
     }
