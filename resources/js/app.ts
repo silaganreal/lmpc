@@ -4,6 +4,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import AuthLayout from '@/layouts/AuthLayout.vue';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
 import { initializeFlashToast } from '@/lib/flashToast';
+import { ZiggyVue } from 'ziggy-js';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
@@ -21,6 +22,11 @@ void createInertiaApp({
                 return AppLayout;
         }
     },
+
+    withApp: (app) => {
+        app.use(ZiggyVue);
+    },
+
     progress: {
         color: '#4B5563',
     },

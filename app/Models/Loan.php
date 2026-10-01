@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Loan extends Model
 {
@@ -26,7 +27,7 @@ class Loan extends Model
         'cbu_retention',
         'insurance_premium',
         'notarial_fee',
-        'net_proceeds',
+        'net_process',
         'status',
         'purpose',
         'remarks',
@@ -86,5 +87,13 @@ class Loan extends Model
     public function approvedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    /**
+     * @return HasMany<LoanAmortization, $this>
+     */
+    public function amortizations(): HasMany
+    {
+        return $this->hasMany(LoanAmortization::class);
     }
 }

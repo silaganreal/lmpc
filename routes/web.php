@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\CbuController;
+use App\Http\Controllers\LoanController;
 use App\Http\Controllers\MemberController;
 use App\Http\Controllers\MembershipApplicationController;
 use App\Http\Controllers\SavingsController;
@@ -70,6 +71,29 @@ Route::middleware(['auth'])->group(function () {
     Route::post('members/{member}/savings/withdrawal', [SavingsController::class, 'withdraw'])
         ->name('savings.withdrawal');
 
+    Route::get('/members/{member}/loans/create', [LoanController::class, 'createForMember'])
+        ->name('members.loans.create');
+
+    Route::get('/loans/create', [LoanController::class, 'create'])
+        ->name('loans.create');
+
+    Route::post('/loans', [LoanController::class, 'store'])
+        ->name('loans.store');
+
+    Route::patch('/loans/{loan}/submit', [LoanController::class, 'submit'])
+        ->name('loans.submit');
+
+    Route::get('/loans/{loan}', [LoanController::class, 'show'])
+        ->name('loans.show');
+
+    Route::patch('/loans/{loan}/approve', [LoanController::class, 'approve'])
+        ->name('loans.approve');
+
+    Route::patch('/loans/{loan}/reject', [LoanController::class, 'reject'])
+        ->name('loans.reject');
+
+    Route::patch('/loans/{loan}/release', [LoanController::class, 'release'])
+        ->name('loans.release');
 });
 
 require __DIR__.'/settings.php';

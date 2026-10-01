@@ -2,6 +2,7 @@
 
 namespace Tests\Unit;
 
+use App\Models\Loan;
 use App\Models\LoanProduct;
 use App\Models\Member;
 use App\Services\Financial\LoanApplicationService;
@@ -146,6 +147,88 @@ class LoanApplicationServiceTest extends TestCase
             loanProduct: $product,
             principalAmount: 10_000,
             termMonths: 0,
+        );
+    }
+
+    public function test_creates_loan_application_with_calculated_values(): void
+    {
+        $member = $this->createMember();
+
+        $member->cbuAccount()->create([
+            'current_balance' => 50_000,
+        ]);
+
+        $loanProduct = LoanProduct::where('code', 'EMERGENCY')->firstOrFail();
+
+        $loan = app(LoanApplicationService::class)->createApplication(
+            member: $member,
+            loanProduct: $loanProduct,
+            principalAmount: 40_000,
+            termMonths: 12,
+            purpose: 'Emergency expenses',
+        );
+
+        $this->assertInstanceOf(Loan::class, $loan);
+        $this->assertSame($member->id, $loan->member_id);
+        $this->assertSame($loanProduct->id, $loan->loan_product_id);
+
+        $this->assertSame(40_000.00, (float) $loan->principal_amount);
+        $this->assertSame(1_200.00, (float) $loan->cbu_retention);
+        $this->assertSame(800.00, (float) $loan->service_fee);
+        $this->assertSame(150.00, (float) $loan->notarial_fee);
+        $this->assertSame(37_850.00, (float) $loan->net_process);
+
+        $this->assertSame('draft', $loan->status);
+        $this->assertSame('Emergency expenses', $loan->purpose);
+
+        $this->assertDatabaseHas('loans', [
+            'id' => $loan->id,
+            'member_id' => $member->id,
+            'loan_product_id' => $loanProduct->id,
+            'status' => 'draft',
+        ]);
+    }
+
+    public function test_rejects_loan_amount_above_maximum_loanable_amount(): void
+    {
+        $member = $this->createMember();
+
+        $member->cbuAccount()->create([
+            'current_balance' => 10_000,
+        ]);
+
+        $loanProduct = LoanProduct::where('code', 'EMERGENCY')->firstOrFail();
+
+        $this->expectException(\InvalidArgumentException::class);
+
+        app(LoanApplicationService::class)->createApplication(
+            member: $member,
+            loanProduct: $loanProduct,
+            principalAmount: 100_001,
+            termMonths: 12,
+        );
+    }
+
+    public function test_creates_loan_with_generated_loan_number(): void
+    {
+        $member = $this->createMember();
+
+        $member->cbuAccount()->create([
+            'current_balance' => 50_000,
+        ]);
+
+        $loanProduct = LoanProduct::where('code', 'EMERGENCY')->firstOrFail();
+
+        $loan = app(LoanApplicationService::class)->createApplication(
+            member: $member,
+            loanProduct: $loanProduct,
+            principalAmount: 20_000,
+            termMonths: 12,
+        );
+
+        $this->assertMatchesRegularExpression(
+            '/^LN-\d{4}-\d{5}$/',
+            $loan->loan_no,
         );
     }
 

@@ -113,6 +113,25 @@ interface SavingsAccount {
     transactions?: SavingsTransaction[];
 }
 
+interface LoanProduct {
+    id: number;
+    code: string;
+    name: string;
+}
+
+interface Loan {
+    id: number;
+    loan_no: string;
+    principal_amount: number | string;
+    interest_rate_monthly: number | string;
+    term_months: number;
+    monthly_amortization: number | string | null;
+    outstanding_principal: number | string;
+    status: string;
+    application_date: string;
+    loan_product: LoanProduct;
+}
+
 interface Member {
     id: number;
     member_no: string;
@@ -143,6 +162,7 @@ interface Member {
     share_account: ShareAccount | null;
     cbu_account: CbuAccount | null;
     savings_account?: SavingsAccount | null;
+    loans: Loan[];
 }
 
 defineProps<{
@@ -772,6 +792,151 @@ const primaryAddress = (member: Member) => {
                 >
                     No savings transactions recorded yet.
                 </p>
+            </div>
+        </div>
+
+        <!-- Loans -->
+        <div class="bg-card rounded-xl border p-6 shadow-sm">
+            <div
+                class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+            >
+                <div>
+                    <h2 class="text-lg font-semibold">Loan History</h2>
+
+                    <p class="text-muted-foreground mt-1 text-sm">
+                        Loan applications and current loan balances for this
+                        member.
+                    </p>
+                </div>
+
+                <Link
+                    :href="`/members/${member.id}/loans/create`"
+                    class="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center rounded-md px-4 py-2 text-sm font-medium"
+                >
+                    New Loan Application
+                </Link>
+            </div>
+
+            <div v-if="member.loans?.length" class="mt-6 overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead class="bg-muted/50">
+                        <tr class="border-b">
+                            <th class="px-4 py-3 text-left font-medium">
+                                Loan No.
+                            </th>
+                            <th class="px-4 py-3 text-left font-medium">
+                                Product
+                            </th>
+                            <th class="px-4 py-3 text-left font-medium">
+                                Application Date
+                            </th>
+                            <th class="px-4 py-3 text-right font-medium">
+                                Principal
+                            </th>
+                            <th class="px-4 py-3 text-right font-medium">
+                                Monthly Amortization
+                            </th>
+                            <th class="px-4 py-3 text-right font-medium">
+                                Outstanding
+                            </th>
+                            <th class="px-4 py-3 text-center font-medium">
+                                Status
+                            </th>
+                            <th class="px-4 py-3 text-right font-medium">
+                                Action
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr
+                            v-for="loan in member.loans"
+                            :key="loan.id"
+                            class="border-b last:border-b-0"
+                        >
+                            <td class="px-4 py-3 font-medium">
+                                {{ loan.loan_no }}
+                            </td>
+
+                            <td class="px-4 py-3">
+                                {{ loan.loan_product.name }}
+                            </td>
+
+                            <td class="px-4 py-3">
+                                {{ formatDate(loan.application_date) }}
+                            </td>
+
+                            <td class="px-4 py-3 text-right">
+                                {{ formatAmount(loan.principal_amount) }}
+                            </td>
+
+                            <td class="px-4 py-3 text-right">
+                                {{ formatAmount(loan.monthly_amortization) }}
+                            </td>
+
+                            <td class="px-4 py-3 text-right font-medium">
+                                {{ formatAmount(loan.outstanding_principal) }}
+                            </td>
+
+                            <td class="px-4 py-3 text-center">
+                                <span
+                                    class="inline-flex rounded-full px-2.5 py-1 text-xs font-medium"
+                                    :class="{
+                                        'bg-gray-100 text-gray-700':
+                                            loan.status === 'draft',
+
+                                        'bg-yellow-100 text-yellow-800':
+                                            loan.status === 'pending',
+
+                                        'bg-green-100 text-green-800':
+                                            loan.status === 'approved',
+
+                                        'bg-blue-100 text-blue-800':
+                                            loan.status === 'released',
+
+                                        'bg-red-100 text-red-800':
+                                            loan.status === 'rejected',
+
+                                        'bg-purple-100 text-purple-800':
+                                            loan.status === 'fully_paid',
+                                    }"
+                                >
+                                    {{
+                                        loan.status
+                                            .replaceAll('_', ' ')
+                                            .replace(/^\w/, (letter) =>
+                                                letter.toUpperCase(),
+                                            )
+                                    }}
+                                </span>
+                            </td>
+
+                            <td class="px-4 py-3 text-right">
+                                <Link
+                                    :href="`/loans/${loan.id}`"
+                                    class="text-primary font-medium hover:underline"
+                                >
+                                    View
+                                </Link>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div
+                v-else
+                class="mt-6 rounded-md border border-dashed p-8 text-center"
+            >
+                <p class="text-muted-foreground text-sm">
+                    No loan applications recorded yet.
+                </p>
+
+                <Link
+                    :href="`/members/${member.id}/loans/create`"
+                    class="text-primary mt-2 inline-block text-sm font-medium hover:underline"
+                >
+                    Create the first loan application
+                </Link>
             </div>
         </div>
 

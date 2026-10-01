@@ -53,6 +53,7 @@ export default defineConfig({
             'resources/js/components/ui/*',
             'resources/js/routes/**',
             'resources/js/wayfinder/**',
+            'resources/js/ziggy.js',
         ],
         options: {
             denyWarnings: true,
