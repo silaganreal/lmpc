@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\CbuController;
 use App\Http\Controllers\LoanController;
+use App\Http\Controllers\LoanPaymentController;
 use App\Http\Controllers\MemberController;
 use App\Http\Controllers\MembershipApplicationController;
 use App\Http\Controllers\SavingsController;
@@ -94,6 +95,9 @@ Route::middleware(['auth'])->group(function () {
 
     Route::patch('/loans/{loan}/release', [LoanController::class, 'release'])
         ->name('loans.release');
+
+    Route::post('/loans/{loan}/payments', [LoanPaymentController::class, 'store'])
+        ->name('loans.payments.store');
 });
 
 require __DIR__.'/settings.php';

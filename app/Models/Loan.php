@@ -96,4 +96,12 @@ class Loan extends Model
     {
         return $this->hasMany(LoanAmortization::class);
     }
+
+    /**
+     * @return HasMany<LoanPayment, $this>
+     */
+    public function payments(): HasMany
+    {
+        return $this->hasMany(LoanPayment::class);
+    }
 }

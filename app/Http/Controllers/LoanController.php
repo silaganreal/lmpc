@@ -127,6 +127,7 @@ class LoanController extends Controller
             'member',
             'loanProduct',
             'amortizations',
+            'payments',
         ]);
 
         // dd($loan->toArray());

@@ -34,51 +34,57 @@ class LoanAmortizationService
             $monthlyRate = (float) $loan->interest_rate_monthly;
             $termMonths = (int) $loan->term_months;
 
-            $monthlyInterest = $principal * ($monthlyRate / 100);
-            $totalInterest = $monthlyInterest * $termMonths;
-            $totalPayable = $principal + $totalInterest;
-            $monthlyAmortization = $totalPayable / $termMonths;
+            $monthlyInterest = round(
+                $principal * ($monthlyRate / 100),
+                2
+            );
 
-            $beginningBalance = $principal;
+            $basePrincipalPayment = round(
+                $principal / $termMonths,
+                2
+            );
+
+            $beginningBalance = round($principal, 2);
+            $remainingPrincipal = round($principal, 2);
 
             $releaseDate = $loan->release_date
                 ? Carbon::parse($loan->release_date)
                 : Carbon::today();
 
             for ($installment = 1; $installment <= $termMonths; $installment++) {
-                $principalPayment = $principal / $termMonths;
+                $principalPayment = $installment === $termMonths
+                    ? $remainingPrincipal
+                    : min($basePrincipalPayment, $remainingPrincipal);
+
+                $principalPayment = round($principalPayment, 2);
 
                 $interestPayment = $monthlyInterest;
 
-                $totalDue = $principalPayment + $interestPayment;
+                $totalDue = round(
+                    $principalPayment + $interestPayment,
+                    2
+                );
 
-                $endingBalance = $beginningBalance - $principalPayment;
-
-                // Prevent floating-point residue on the final installment.
-                if ($installment === $termMonths) {
-                    $principalPayment = $beginningBalance;
-                    $totalDue = $principalPayment + $interestPayment;
-                    $endingBalance = 0;
-                }
+                $endingBalance = round(
+                    $remainingPrincipal - $principalPayment,
+                    2
+                );
 
                 LoanAmortization::create([
                     'loan_id' => $loan->id,
                     'installment_no' => $installment,
-
                     'due_date' => $releaseDate->copy()->addMonths($installment),
-
                     'beginning_balance' => $beginningBalance,
                     'principal_amount' => $principalPayment,
                     'interest_amount' => $interestPayment,
                     'penalty_amount' => 0,
                     'total_due' => $totalDue,
-
                     'paid_amount' => 0,
                     'paid_date' => null,
-
                     'status' => 'pending',
                 ]);
 
+                $remainingPrincipal = $endingBalance;
                 $beginningBalance = $endingBalance;
             }
         });

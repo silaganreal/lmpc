@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { route } from 'ziggy-js';
 
@@ -43,6 +43,18 @@ interface LoanAmortization {
     status: string;
 }
 
+interface LoanPayment {
+    id: number;
+    payment_date: string;
+    reference_no: string | null;
+    principal_amount: string | number;
+    interest_amount: string | number;
+    penalty_amount: string | number;
+    total_amount: string | number;
+    payment_method: string;
+    remarks: string | null;
+}
+
 interface Loan {
     id: number;
     loan_no: string;
@@ -71,6 +83,7 @@ interface Loan {
     member: Member;
     loan_product: LoanProduct;
     amortizations: LoanAmortization[];
+    payments: LoanPayment[];
 }
 
 interface Props {
@@ -78,6 +91,16 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+
+// Store Loan Payment
+const showPaymentForm = ref(false);
+
+const paymentAmount = ref('');
+const paymentDate = ref(new Date().toISOString().slice(0, 10));
+const paymentReference = ref('');
+const paymentMethod = ref('cash');
+const paymentRemarks = ref('');
+const paymentProcessing = ref(false);
 
 const formatCurrency = (value: number | string) => {
     return new Intl.NumberFormat('en-PH', {
@@ -137,6 +160,45 @@ const submitApplication = () => {
         {},
         {
             preserveScroll: true,
+        },
+    );
+};
+
+const submitPayment = () => {
+    if (!paymentAmount.value || Number(paymentAmount.value) <= 0) {
+        return;
+    }
+
+    if (
+        !confirm(
+            `Are you sure you want to record a payment of ${formatCurrency(paymentAmount.value)}`,
+        )
+    ) {
+        return;
+    }
+
+    paymentProcessing.value = true;
+
+    router.post(
+        route('loans.payments.store', props.loan.id),
+        {
+            amount: paymentAmount.value,
+            payment_date: paymentDate.value,
+            reference_no: paymentReference.value || null,
+            payment_method: paymentMethod.value,
+            remarks: paymentRemarks.value || null,
+        },
+        {
+            preserveScroll: true,
+            onFinish: () => {
+                paymentProcessing.value = false;
+            },
+            onSuccess: () => {
+                showPaymentForm.value = false;
+                paymentAmount.value = '';
+                paymentReference.value = '';
+                paymentRemarks.value = '';
+            },
         },
     );
 };
@@ -599,9 +661,143 @@ const submitApplication = () => {
                 </div>
             </div>
 
+            <!-- Payment Actions -->
+            <div
+                v-if="['released', 'active', 'past_due'].includes(loan.status)"
+                class="mt-6 flex justify-end"
+            >
+                <button
+                    type="button"
+                    class="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center rounded-md px-4 py-2 text-sm font-medium shadow-sm"
+                    @click="showPaymentForm = !showPaymentForm"
+                >
+                    {{ showPaymentForm ? 'Cancel Payment' : 'Record Payment' }}
+                </button>
+            </div>
+
+            <div
+                v-if="
+                    showPaymentForm &&
+                    ['released', 'active', 'past_due'].includes(loan.status)
+                "
+                class="bg-card mt-4 rounded-lg border p-6 shadow-sm"
+            >
+                <div class="mb-6">
+                    <h2 class="text-lg font-semibold">Record Loan Payment</h2>
+
+                    <p class="text-muted-foreground mt-1 text-sm">
+                        Record a payment against this loan. Payments are applied
+                        to penalty, interest, and principal.
+                    </p>
+                </div>
+
+                <div class="grid gap-6 md:grid-cols-2">
+                    <!-- Amount -->
+                    <div>
+                        <label class="mb-2 block text-sm font-medium">
+                            Payment Amount
+                        </label>
+
+                        <input
+                            v-model="paymentAmount"
+                            type="number"
+                            min="0.01"
+                            step="0.01"
+                            placeholder="0.00"
+                            class="border-input bg-background w-full rounded-md border px-3 py-2 text-sm"
+                        />
+                    </div>
+
+                    <!-- Payment Date -->
+                    <div>
+                        <label class="mb-2 block text-sm font-medium">
+                            Payment Date
+                        </label>
+
+                        <input
+                            v-model="paymentDate"
+                            type="date"
+                            class="border-input bg-background w-full rounded-md border px-3 py-2 text-sm"
+                        />
+                    </div>
+
+                    <!-- Reference -->
+                    <div>
+                        <label class="mb-2 block text-sm font-medium">
+                            Reference No.
+                        </label>
+
+                        <input
+                            v-model="paymentReference"
+                            type="text"
+                            placeholder="OR number / reference"
+                            class="border-input bg-background w-full rounded-md border px-3 py-2 text-sm"
+                        />
+                    </div>
+
+                    <!-- Payment Method -->
+                    <div>
+                        <label class="mb-2 block text-sm font-medium">
+                            Payment Method
+                        </label>
+
+                        <select
+                            v-model="paymentMethod"
+                            class="border-input bg-background w-full rounded-md border px-3 py-2 text-sm"
+                        >
+                            <option value="cash">Cash</option>
+                            <option value="salary_deduction">
+                                Salary Deduction
+                            </option>
+                            <option value="bank">Bank</option>
+                            <option value="check">Check</option>
+                        </select>
+                    </div>
+
+                    <!-- Remarks -->
+                    <div class="md:col-span-2">
+                        <label class="mb-2 block text-sm font-medium">
+                            Remarks
+                        </label>
+
+                        <textarea
+                            v-model="paymentRemarks"
+                            rows="3"
+                            placeholder="Optional remarks"
+                            class="border-input bg-background w-full rounded-md border px-3 py-2 text-sm"
+                        />
+                    </div>
+                </div>
+
+                <div class="mt-6 flex justify-end gap-2">
+                    <button
+                        type="button"
+                        class="border-input hover:bg-muted rounded-md border px-4 py-2 text-sm font-medium"
+                        @click="showPaymentForm = false"
+                    >
+                        Cancel
+                    </button>
+
+                    <button
+                        type="button"
+                        :disabled="
+                            paymentProcessing ||
+                            !paymentAmount ||
+                            Number(paymentAmount) <= 0
+                        "
+                        class="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center rounded-md px-4 py-2 text-sm font-medium disabled:pointer-events-none disabled:opacity-50"
+                        @click="submitPayment"
+                    >
+                        {{
+                            paymentProcessing ? 'Recording...' : 'Save Payment'
+                        }}
+                    </button>
+                </div>
+            </div>
+
             <!-- Amortization Schedule -->
             <div
-                v-if="loan.status === 'released' && loan.amortizations?.length"
+                v-if="loan.amortizations?.length"
                 class="bg-card mt-6 rounded-lg border p-6 shadow-sm"
             >
                 <div class="mb-6">
@@ -629,6 +825,13 @@ const submitApplication = () => {
                                 </th>
                                 <th class="px-3 py-3 text-right font-medium">
                                     Total Due
+                                </th>
+                                <th class="px-3 py-3 text-right font-medium">
+                                    Paid
+                                </th>
+
+                                <th class="px-3 py-3 font-medium">
+                                    Paid Date
                                 </th>
                                 <th class="px-3 py-3 text-center font-medium">
                                     Status
@@ -669,8 +872,106 @@ const submitApplication = () => {
                                 <td class="px-3 py-3 text-right font-medium">
                                     {{ formatCurrency(schedule.total_due) }}
                                 </td>
-                                <td class="px-3 py-3 text-center capitalize">
-                                    {{ schedule.status }}
+                                <td class="px-3 py-3 text-right">
+                                    {{ formatCurrency(schedule.paid_amount) }}
+                                </td>
+
+                                <td class="px-3 py-3">
+                                    {{
+                                        schedule.paid_date
+                                            ? formatDate(schedule.paid_date)
+                                            : '—'
+                                    }}
+                                </td>
+                                <td class="px-3 py-3 text-center">
+                                    <span
+                                        class="inline-flex rounded-full px-2 py-1 text-xs font-medium"
+                                        :class="{
+                                            'bg-yellow-100 text-yellow-800':
+                                                schedule.status === 'pending',
+
+                                            'bg-blue-100 text-blue-800':
+                                                schedule.status === 'partial',
+
+                                            'bg-green-100 text-green-800':
+                                                schedule.status === 'paid',
+                                        }"
+                                    >
+                                        {{ schedule.status }}
+                                    </span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Payment History -->
+            <div
+                v-if="loan.payments?.length"
+                class="bg-card mt-6 rounded-lg border p-6 shadow-sm"
+            >
+                <div class="mb-6">
+                    <h2 class="text-lg font-semibold">Payment History</h2>
+
+                    <p class="text-muted-foreground mt-1 text-sm">
+                        Recorded payments for this loan.
+                    </p>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead>
+                            <tr class="border-b text-left">
+                                <th class="px-3 py-3 font-medium">Date</th>
+                                <th class="px-3 py-3 font-medium">Reference</th>
+                                <th class="px-3 py-3 font-medium">Method</th>
+                                <th class="px-3 py-3 text-right font-medium">
+                                    Principal
+                                </th>
+                                <th class="px-3 py-3 text-right font-medium">
+                                    Interest
+                                </th>
+                                <th class="px-3 py-3 text-right font-medium">
+                                    Penalty
+                                </th>
+                                <th class="px-3 py-3 text-right font-medium">
+                                    Total
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr
+                                v-for="payment in loan.payments"
+                                :key="payment.id"
+                                class="border-b last:border-0"
+                            >
+                                <td class="px-3 py-3">
+                                    {{ formatDate(payment.payment_date) }}
+                                </td>
+                                <td class="px-3 py-3">
+                                    {{ payment.reference_no || '-' }}
+                                </td>
+                                <td class="px-3 py-3 capitalize">
+                                    {{
+                                        payment.payment_method.replace('_', ' ')
+                                    }}
+                                </td>
+                                <td class="px-3 py-3 text-right">
+                                    {{
+                                        formatCurrency(payment.principal_amount)
+                                    }}
+                                </td>
+                                <td class="px-3 py-3 text-right">
+                                    {{
+                                        formatCurrency(payment.interest_amount)
+                                    }}
+                                </td>
+                                <td class="px-3 py-3 text-right">
+                                    {{ formatCurrency(payment.penalty_amount) }}
+                                </td>
+                                <td class="px-3 py-3 text-right font-medium">
+                                    {{ formatCurrency(payment.total_amount) }}
                                 </td>
                             </tr>
                         </tbody>
