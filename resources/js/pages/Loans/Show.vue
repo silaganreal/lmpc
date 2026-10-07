@@ -830,9 +830,7 @@ const submitPayment = () => {
                                     Paid
                                 </th>
 
-                                <th class="px-3 py-3 font-medium">
-                                    Paid Date
-                                </th>
+                                <th class="px-3 py-3 font-medium">Paid Date</th>
                                 <th class="px-3 py-3 text-center font-medium">
                                     Status
                                 </th>
