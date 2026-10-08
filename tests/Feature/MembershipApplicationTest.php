@@ -18,6 +18,8 @@ class MembershipApplicationTest extends TestCase
         $response = $this->actingAs($user)->post(
             route('membership-applications.store'),
             [
+                'first_name' => 'Juan',
+                'last_name' => 'Dela Cruz',
                 'date_of_application' => '2026-09-11',
                 'membership_type' => 'regular',
                 'shares_subscribed' => 10,
@@ -46,6 +48,8 @@ class MembershipApplicationTest extends TestCase
 
         $application = MembershipApplication::create([
             'application_no' => 'APP-2026-999999',
+            'first_name' => 'Juan',
+            'last_name' => 'Dela Cruz',
             'date_of_application' => '2026-09-11',
             'membership_type' => 'regular',
             'shares_subscribed' => 10,
@@ -82,6 +86,8 @@ class MembershipApplicationTest extends TestCase
     {
         $application = MembershipApplication::create([
             'application_no' => 'APP-2026-999998',
+            'first_name' => 'Juan',
+            'last_name' => 'Dela Cruz',
             'date_of_application' => '2026-09-11',
             'membership_type' => 'regular',
             'shares_subscribed' => 10,
@@ -113,6 +119,8 @@ class MembershipApplicationTest extends TestCase
 
         $application = MembershipApplication::create([
             'application_no' => 'APP-2026-999997',
+            'first_name' => 'Juan',
+            'last_name' => 'Dela Cruz',
             'date_of_application' => '2026-09-11',
             'membership_type' => 'regular',
             'shares_subscribed' => 10,
@@ -150,6 +158,8 @@ class MembershipApplicationTest extends TestCase
     {
         $application = MembershipApplication::create([
             'application_no' => 'APP-2026-999996',
+            'first_name' => 'Juan',
+            'last_name' => 'Dela Cruz',
             'date_of_application' => '2026-09-11',
             'membership_type' => 'regular',
             'shares_subscribed' => 10,
@@ -177,28 +187,41 @@ class MembershipApplicationTest extends TestCase
         ]);
     }
 
-    // public function test_only_submitted_membership_applications_can_be_moved_to_review(): void
+    // public function test_membership_application_can_be_approved(): void
     // {
     //     $user = User::factory()->create();
 
     //     $application = MembershipApplication::create([
     //         'application_no' => 'APP-2026-999995',
+    //         'first_name' => 'Juan',
+    //         'last_name' => 'Dela Cruz',
     //         'date_of_application' => '2026-09-11',
     //         'membership_type' => 'regular',
     //         'shares_subscribed' => 10,
     //         'amount_subscribed' => 1000,
     //         'initial_paid_up' => 500,
-    //         'status' => 'draft',
+    //         'status' => 'under_review',
     //     ]);
 
-    //     $this->expectException(\LogicException::class);
-
-    //     $this->actingAs($user)->patch(
-    //         route(
-    //             'membership-applications.review',
-    //             $application
+    //     $this->actingAs($user)
+    //         ->patch(
+    //             route(
+    //                 'membership-applications.approve',
+    //                 $application
+    //             )
     //         )
-    //     );
+    //         ->assertRedirect(
+    //             route(
+    //                 'membership-applications.show',
+    //                 $application
+    //             )
+    //         );
+
+    //     $application->refresh();
+
+    //     $this->assertSame('approved', $application->status);
+    //     $this->assertSame($user->id, $application->approved_by);
+    //     $this->assertNotNull($application->approved_at);
     // }
 
     public function test_membership_application_can_be_approved(): void
@@ -207,6 +230,22 @@ class MembershipApplicationTest extends TestCase
 
         $application = MembershipApplication::create([
             'application_no' => 'APP-2026-999995',
+            'first_name' => 'Juan',
+            'middle_name' => 'Santos',
+            'last_name' => 'Dela Cruz',
+            'suffix' => 'Jr.',
+            'date_of_birth' => '1990-01-15',
+            'sex' => 'male',
+            'civil_status' => 'married',
+            'nationality' => 'Filipino',
+            'religion' => 'Catholic',
+            'place_of_birth' => 'Tacloban City',
+            'tin' => '123-456-789',
+            'mobile_number' => '09171234567',
+            'telephone_number' => '053-123-4567',
+            'email' => 'juan@example.com',
+            'residence_type' => 'Owned',
+
             'date_of_application' => '2026-09-11',
             'membership_type' => 'regular',
             'shares_subscribed' => 10,
@@ -234,12 +273,38 @@ class MembershipApplicationTest extends TestCase
         $this->assertSame('approved', $application->status);
         $this->assertSame($user->id, $application->approved_by);
         $this->assertNotNull($application->approved_at);
+
+        $this->assertNotNull($application->member_id);
+
+        $this->assertDatabaseHas('members', [
+            'id' => $application->member_id,
+            'application_no' => 'APP-2026-999995',
+            'first_name' => 'Juan',
+            'middle_name' => 'Santos',
+            'last_name' => 'Dela Cruz',
+            'suffix' => 'Jr.',
+            'date_of_birth' => '1990-01-15',
+            'sex' => 'male',
+            'civil_status' => 'married',
+            'nationality' => 'Filipino',
+            'religion' => 'Catholic',
+            'place_of_birth' => 'Tacloban City',
+            'tin' => '123-456-789',
+            'mobile_number' => '09171234567',
+            'telephone_number' => '053-123-4567',
+            'email' => 'juan@example.com',
+            'residence_type' => 'Owned',
+            'membership_type' => 'regular',
+            'status' => 'active',
+        ]);
     }
 
     public function test_unauthenticated_user_cannot_approve_membership_application(): void
     {
         $application = MembershipApplication::create([
             'application_no' => 'APP-2026-999994',
+            'first_name' => 'Juan',
+            'last_name' => 'Dela Cruz',
             'date_of_application' => '2026-09-11',
             'membership_type' => 'regular',
             'shares_subscribed' => 10,

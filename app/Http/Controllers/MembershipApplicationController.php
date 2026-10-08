@@ -62,14 +62,40 @@ class MembershipApplicationController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
+            // Applicant information
+            'first_name' => ['required', 'string', 'max:100'],
+            'middle_name' => ['nullable', 'string', 'max:100'],
+            'last_name' => ['required', 'string', 'max:100'],
+            'suffix' => ['nullable', 'string', 'max:20'],
+
+            'date_of_birth' => ['nullable', 'date'],
+            'sex' => ['nullable', 'in:male,female'],
+            'civil_status' => [
+                'nullable',
+                'in:single,married,widowed,separated,divorced',
+            ],
+            'nationality' => ['nullable', 'string', 'max:100'],
+            'religion' => ['nullable', 'string', 'max:100'],
+            'place_of_birth' => ['nullable', 'string', 'max:255'],
+            'tin' => ['nullable', 'string', 'max:50'],
+
+            'mobile_number' => ['nullable', 'string', 'max:30'],
+            'telephone_number' => ['nullable', 'string', 'max:30'],
+            'email' => ['nullable', 'email', 'max:255'],
+            'residence_type' => ['nullable', 'string', 'max:100'],
+
+            // Application information
             'member_id' => ['nullable', 'exists:members,id'],
             'date_of_application' => ['required', 'date'],
             'membership_type' => ['required', 'in:regular,associate'],
             'shares_subscribed' => ['required', 'integer', 'min:1'],
             'amount_subscribed' => ['required', 'numeric', 'min:0'],
             'initial_paid_up' => ['required', 'numeric', 'min:0'],
+
+            // Recruitment
             'recruiter_name' => ['nullable', 'string', 'max:255'],
             'recruiter_mobile' => ['nullable', 'string', 'max:30'],
+
             'remarks' => ['nullable', 'string'],
         ]);
 

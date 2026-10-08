@@ -11,13 +11,36 @@ class MembershipApplication extends Model
     protected $fillable = [
         'application_no',
         'member_id',
+
+        // Applicant information
+        'first_name',
+        'middle_name',
+        'last_name',
+        'suffix',
+        'date_of_birth',
+        'sex',
+        'civil_status',
+        'nationality',
+        'religion',
+        'place_of_birth',
+        'tin',
+        'mobile_number',
+        'telephone_number',
+        'email',
+        'residence_type',
+
+        // Application information
         'date_of_application',
         'membership_type',
         'shares_subscribed',
         'amount_subscribed',
         'initial_paid_up',
+
+        // Recruitment
         'recruiter_name',
         'recruiter_mobile',
+
+        // Board / processing
         'board_resolution_no',
         'board_approval_date',
         'status',
@@ -27,6 +50,7 @@ class MembershipApplication extends Model
         'processed_at',
         'reviewed_at',
         'approved_at',
+
         'remarks',
     ];
 
@@ -34,6 +58,7 @@ class MembershipApplication extends Model
     {
         return [
             'date_of_application' => 'date',
+            'date_of_birth' => 'date',
             'board_approval_date' => 'date',
             'processed_at' => 'datetime',
             'reviewed_at' => 'datetime',
