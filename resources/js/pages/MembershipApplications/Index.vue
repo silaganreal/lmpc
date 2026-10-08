@@ -13,6 +13,13 @@ interface Member {
 interface MembershipApplication {
     id: number;
     application_no: string;
+
+    // Applicant information
+    first_name: string;
+    middle_name: string | null;
+    last_name: string;
+    suffix: string | null;
+
     date_of_application: string;
     membership_type: string;
     shares_subscribed: number;
@@ -66,16 +73,12 @@ const formatAmount = (amount: string | number) => {
     });
 };
 
-const membersName = (member: Member | null) => {
-    if (!member) {
-        return '-';
-    }
-
+const applicantName = (application: MembershipApplication) => {
     return [
-        member.first_name,
-        member.middle_name,
-        member.last_name,
-        member.suffix,
+        application.first_name,
+        application.middle_name,
+        application.last_name,
+        application.suffix,
     ]
         .filter(Boolean)
         .join(' ');
@@ -196,13 +199,21 @@ const membersName = (member: Member | null) => {
                             <td class="px-6 py-4">
                                 <div>
                                     <p class="font-medium">
-                                        {{ membersName(application.member) }}
+                                        {{ applicantName(application) }}
                                     </p>
+
                                     <p
                                         v-if="application.member"
                                         class="text-muted-foreground text-xs"
                                     >
-                                        {{ application.member?.member_no }}
+                                        {{ application.member.member_no }}
+                                    </p>
+
+                                    <p
+                                        v-else
+                                        class="text-muted-foreground text-xs"
+                                    >
+                                        Applicant
                                     </p>
                                 </div>
                             </td>
@@ -217,11 +228,11 @@ const membersName = (member: Member | null) => {
                                 {{ application.membership_type }}
                             </td>
 
-                            <td class="px-6 py-4 text-right">
+                            <td class="px-6 py-4 text-left">
                                 {{ application.shares_subscribed }}
                             </td>
 
-                            <td class="px-6 py-4 text-right font-medium">
+                            <td class="px-6 py-4 text-left font-medium">
                                 ₱{{ formatAmount(application.initial_paid_up) }}
                             </td>
 

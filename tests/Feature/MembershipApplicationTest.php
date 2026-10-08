@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\MembershipApplication;
+use App\Models\ShareAccount;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -187,43 +188,6 @@ class MembershipApplicationTest extends TestCase
         ]);
     }
 
-    // public function test_membership_application_can_be_approved(): void
-    // {
-    //     $user = User::factory()->create();
-
-    //     $application = MembershipApplication::create([
-    //         'application_no' => 'APP-2026-999995',
-    //         'first_name' => 'Juan',
-    //         'last_name' => 'Dela Cruz',
-    //         'date_of_application' => '2026-09-11',
-    //         'membership_type' => 'regular',
-    //         'shares_subscribed' => 10,
-    //         'amount_subscribed' => 1000,
-    //         'initial_paid_up' => 500,
-    //         'status' => 'under_review',
-    //     ]);
-
-    //     $this->actingAs($user)
-    //         ->patch(
-    //             route(
-    //                 'membership-applications.approve',
-    //                 $application
-    //             )
-    //         )
-    //         ->assertRedirect(
-    //             route(
-    //                 'membership-applications.show',
-    //                 $application
-    //             )
-    //         );
-
-    //     $application->refresh();
-
-    //     $this->assertSame('approved', $application->status);
-    //     $this->assertSame($user->id, $application->approved_by);
-    //     $this->assertNotNull($application->approved_at);
-    // }
-
     public function test_membership_application_can_be_approved(): void
     {
         $user = User::factory()->create();
@@ -296,6 +260,34 @@ class MembershipApplicationTest extends TestCase
             'residence_type' => 'Owned',
             'membership_type' => 'regular',
             'status' => 'active',
+        ]);
+
+        $shareAccount = ShareAccount::where(
+            'member_id',
+            $application->member_id
+        )->first();
+
+        $this->assertNotNull($shareAccount);
+
+        $this->assertSame(10, $shareAccount->shares_subscribed);
+        $this->assertSame('1000.00', $shareAccount->total_subscribed_amount);
+        $this->assertSame('500.00', $shareAccount->paid_up_amount);
+        $this->assertSame('active', $shareAccount->status);
+
+        $this->assertDatabaseHas('share_transactions', [
+            'share_account_id' => $shareAccount->id,
+            'transaction_type' => 'subscription',
+            'direction' => 'credit',
+            'reference_no' => 'APP-2026-999995',
+            'amount' => '1000.00',
+        ]);
+
+        $this->assertDatabaseHas('share_transactions', [
+            'share_account_id' => $shareAccount->id,
+            'transaction_type' => 'payment',
+            'direction' => 'credit',
+            'reference_no' => 'APP-2026-999995',
+            'amount' => '500.00',
         ]);
     }
 

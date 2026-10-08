@@ -1,42 +1,40 @@
 <script setup lang="ts">
 import { Head, Link, useForm } from '@inertiajs/vue3';
 
-interface Member {
-    id: number;
-    member_no: string;
-    first_name: string;
-    middle_name: string | null;
-    last_name: string;
-    suffix: string | null;
-    membership_type: string;
-}
-
-const props = defineProps<{
-    members: Member[];
-}>();
-
 const form = useForm({
-    member_id: '',
+    // Applicant Information
+    first_name: '',
+    middle_name: '',
+    last_name: '',
+    suffix: '',
+    date_of_birth: '',
+    sex: '',
+    civil_status: '',
+    nationality: '',
+    religion: '',
+    place_of_birth: '',
+    tin: '',
+    mobile_number: '',
+    telephone_number: '',
+    email: '',
+    residence_type: '',
+
+    // Application Information
     date_of_application: new Date().toISOString().split('T')[0],
     membership_type: '',
+
+    // Share Capital
     shares_subscribed: 1,
     amount_subscribed: 0,
     initial_paid_up: 0,
+
+    // Recruitment
     recruiter_name: '',
     recruiter_mobile: '',
+
+    // Remarks
     remarks: '',
 });
-
-const memberName = (member: Member) => {
-    return [
-        member.first_name,
-        member.middle_name,
-        member.last_name,
-        member.suffix,
-    ]
-        .filter(Boolean)
-        .join(' ');
-};
 
 const submit = () => {
     form.post('/membership-applications');
@@ -72,8 +70,389 @@ const submit = () => {
             @submit.prevent="submit"
             class="bg-card overflow-hidden rounded-xl border shadow-sm"
         >
-            <!-- Application Information -->
+            <!-- Applicant Information -->
             <div class="bg-muted/30 border-b px-5 py-4">
+                <h2 class="font-semibold">Applicant Information</h2>
+
+                <p class="text-muted-foreground mt-1 text-sm">
+                    Enter the personal information of the membership applicant.
+                </p>
+            </div>
+
+            <div class="grid gap-5 p-5 sm:grid-cols-2 lg:grid-cols-3">
+                <!-- First Name -->
+                <div>
+                    <label
+                        for="first_name"
+                        class="mb-1.5 block text-sm font-medium"
+                    >
+                        First Name <span class="text-destructive">*</span>
+                    </label>
+
+                    <input
+                        id="first_name"
+                        v-model="form.first_name"
+                        type="text"
+                        autocomplete="given-name"
+                        class="border-input bg-background focus:ring-primary w-full rounded-md border px-3 py-2 text-sm outline-none focus:ring-2"
+                    />
+
+                    <p
+                        v-if="form.errors.first_name"
+                        class="text-destructive mt-1 text-sm"
+                    >
+                        {{ form.errors.first_name }}
+                    </p>
+                </div>
+
+                <!-- Middle Name -->
+                <div>
+                    <label
+                        for="middle_name"
+                        class="mb-1.5 block text-sm font-medium"
+                    >
+                        Middle Name
+                    </label>
+
+                    <input
+                        id="middle_name"
+                        v-model="form.middle_name"
+                        type="text"
+                        autocomplete="additional-name"
+                        class="border-input bg-background focus:ring-primary w-full rounded-md border px-3 py-2 text-sm outline-none focus:ring-2"
+                    />
+
+                    <p
+                        v-if="form.errors.middle_name"
+                        class="text-destructive mt-1 text-sm"
+                    >
+                        {{ form.errors.middle_name }}
+                    </p>
+                </div>
+
+                <!-- Last Name -->
+                <div>
+                    <label
+                        for="last_name"
+                        class="mb-1.5 block text-sm font-medium"
+                    >
+                        Last Name <span class="text-destructive">*</span>
+                    </label>
+
+                    <input
+                        id="last_name"
+                        v-model="form.last_name"
+                        type="text"
+                        autocomplete="family-name"
+                        class="border-input bg-background focus:ring-primary w-full rounded-md border px-3 py-2 text-sm outline-none focus:ring-2"
+                    />
+
+                    <p
+                        v-if="form.errors.last_name"
+                        class="text-destructive mt-1 text-sm"
+                    >
+                        {{ form.errors.last_name }}
+                    </p>
+                </div>
+
+                <!-- Suffix -->
+                <div>
+                    <label
+                        for="suffix"
+                        class="mb-1.5 block text-sm font-medium"
+                    >
+                        Suffix
+                    </label>
+
+                    <input
+                        id="suffix"
+                        v-model="form.suffix"
+                        type="text"
+                        placeholder="Jr., Sr., III"
+                        class="border-input bg-background focus:ring-primary w-full rounded-md border px-3 py-2 text-sm outline-none focus:ring-2"
+                    />
+
+                    <p
+                        v-if="form.errors.suffix"
+                        class="text-destructive mt-1 text-sm"
+                    >
+                        {{ form.errors.suffix }}
+                    </p>
+                </div>
+
+                <!-- Date of Birth -->
+                <div>
+                    <label
+                        for="date_of_birth"
+                        class="mb-1.5 block text-sm font-medium"
+                    >
+                        Date of Birth
+                    </label>
+
+                    <input
+                        id="date_of_birth"
+                        v-model="form.date_of_birth"
+                        type="date"
+                        class="border-input bg-background focus:ring-primary w-full rounded-md border px-3 py-2 text-sm outline-none focus:ring-2"
+                    />
+
+                    <p
+                        v-if="form.errors.date_of_birth"
+                        class="text-destructive mt-1 text-sm"
+                    >
+                        {{ form.errors.date_of_birth }}
+                    </p>
+                </div>
+
+                <!-- Sex -->
+                <div>
+                    <label for="sex" class="mb-1.5 block text-sm font-medium">
+                        Sex
+                    </label>
+
+                    <select
+                        id="sex"
+                        v-model="form.sex"
+                        class="border-input bg-background focus:ring-primary w-full rounded-md border px-3 py-2 text-sm outline-none focus:ring-2"
+                    >
+                        <option value="">Select sex</option>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                    </select>
+
+                    <p
+                        v-if="form.errors.sex"
+                        class="text-destructive mt-1 text-sm"
+                    >
+                        {{ form.errors.sex }}
+                    </p>
+                </div>
+
+                <!-- Civil Status -->
+                <div>
+                    <label
+                        for="civil_status"
+                        class="mb-1.5 block text-sm font-medium"
+                    >
+                        Civil Status
+                    </label>
+
+                    <select
+                        id="civil_status"
+                        v-model="form.civil_status"
+                        class="border-input bg-background focus:ring-primary w-full rounded-md border px-3 py-2 text-sm outline-none focus:ring-2"
+                    >
+                        <option value="">Select civil status</option>
+                        <option value="single">Single</option>
+                        <option value="married">Married</option>
+                        <option value="widowed">Widowed</option>
+                        <option value="separated">Separated</option>
+                        <option value="divorced">Divorced</option>
+                    </select>
+
+                    <p
+                        v-if="form.errors.civil_status"
+                        class="text-destructive mt-1 text-sm"
+                    >
+                        {{ form.errors.civil_status }}
+                    </p>
+                </div>
+
+                <!-- Nationality -->
+                <div>
+                    <label
+                        for="nationality"
+                        class="mb-1.5 block text-sm font-medium"
+                    >
+                        Nationality
+                    </label>
+
+                    <input
+                        id="nationality"
+                        v-model="form.nationality"
+                        type="text"
+                        placeholder="e.g. Filipino"
+                        class="border-input bg-background focus:ring-primary w-full rounded-md border px-3 py-2 text-sm outline-none focus:ring-2"
+                    />
+
+                    <p
+                        v-if="form.errors.nationality"
+                        class="text-destructive mt-1 text-sm"
+                    >
+                        {{ form.errors.nationality }}
+                    </p>
+                </div>
+
+                <!-- Religion -->
+                <div>
+                    <label
+                        for="religion"
+                        class="mb-1.5 block text-sm font-medium"
+                    >
+                        Religion
+                    </label>
+
+                    <input
+                        id="religion"
+                        v-model="form.religion"
+                        type="text"
+                        class="border-input bg-background focus:ring-primary w-full rounded-md border px-3 py-2 text-sm outline-none focus:ring-2"
+                    />
+
+                    <p
+                        v-if="form.errors.religion"
+                        class="text-destructive mt-1 text-sm"
+                    >
+                        {{ form.errors.religion }}
+                    </p>
+                </div>
+
+                <!-- Place of Birth -->
+                <div class="sm:col-span-2">
+                    <label
+                        for="place_of_birth"
+                        class="mb-1.5 block text-sm font-medium"
+                    >
+                        Place of Birth
+                    </label>
+
+                    <input
+                        id="place_of_birth"
+                        v-model="form.place_of_birth"
+                        type="text"
+                        class="border-input bg-background focus:ring-primary w-full rounded-md border px-3 py-2 text-sm outline-none focus:ring-2"
+                    />
+
+                    <p
+                        v-if="form.errors.place_of_birth"
+                        class="text-destructive mt-1 text-sm"
+                    >
+                        {{ form.errors.place_of_birth }}
+                    </p>
+                </div>
+
+                <!-- TIN -->
+                <div>
+                    <label for="tin" class="mb-1.5 block text-sm font-medium">
+                        TIN
+                    </label>
+
+                    <input
+                        id="tin"
+                        v-model="form.tin"
+                        type="text"
+                        class="border-input bg-background focus:ring-primary w-full rounded-md border px-3 py-2 text-sm outline-none focus:ring-2"
+                    />
+
+                    <p
+                        v-if="form.errors.tin"
+                        class="text-destructive mt-1 text-sm"
+                    >
+                        {{ form.errors.tin }}
+                    </p>
+                </div>
+
+                <!-- Mobile Number -->
+                <div>
+                    <label
+                        for="mobile_number"
+                        class="mb-1.5 block text-sm font-medium"
+                    >
+                        Mobile / Cellphone
+                    </label>
+
+                    <input
+                        id="mobile_number"
+                        v-model="form.mobile_number"
+                        type="text"
+                        autocomplete="tel"
+                        placeholder="09XXXXXXXXX"
+                        class="border-input bg-background focus:ring-primary w-full rounded-md border px-3 py-2 text-sm outline-none focus:ring-2"
+                    />
+
+                    <p
+                        v-if="form.errors.mobile_number"
+                        class="text-destructive mt-1 text-sm"
+                    >
+                        {{ form.errors.mobile_number }}
+                    </p>
+                </div>
+
+                <!-- Telephone -->
+                <div>
+                    <label
+                        for="telephone_number"
+                        class="mb-1.5 block text-sm font-medium"
+                    >
+                        Telephone
+                    </label>
+
+                    <input
+                        id="telephone_number"
+                        v-model="form.telephone_number"
+                        type="text"
+                        autocomplete="tel"
+                        class="border-input bg-background focus:ring-primary w-full rounded-md border px-3 py-2 text-sm outline-none focus:ring-2"
+                    />
+
+                    <p
+                        v-if="form.errors.telephone_number"
+                        class="text-destructive mt-1 text-sm"
+                    >
+                        {{ form.errors.telephone_number }}
+                    </p>
+                </div>
+
+                <!-- Email -->
+                <div>
+                    <label for="email" class="mb-1.5 block text-sm font-medium">
+                        Email
+                    </label>
+
+                    <input
+                        id="email"
+                        v-model="form.email"
+                        type="email"
+                        autocomplete="email"
+                        class="border-input bg-background focus:ring-primary w-full rounded-md border px-3 py-2 text-sm outline-none focus:ring-2"
+                    />
+
+                    <p
+                        v-if="form.errors.email"
+                        class="text-destructive mt-1 text-sm"
+                    >
+                        {{ form.errors.email }}
+                    </p>
+                </div>
+
+                <!-- Residence Type -->
+                <div>
+                    <label
+                        for="residence_type"
+                        class="mb-1.5 block text-sm font-medium"
+                    >
+                        Type of Residence
+                    </label>
+
+                    <input
+                        id="residence_type"
+                        v-model="form.residence_type"
+                        type="text"
+                        placeholder="e.g. Owned, Rented"
+                        class="border-input bg-background focus:ring-primary w-full rounded-md border px-3 py-2 text-sm outline-none focus:ring-2"
+                    />
+
+                    <p
+                        v-if="form.errors.residence_type"
+                        class="text-destructive mt-1 text-sm"
+                    >
+                        {{ form.errors.residence_type }}
+                    </p>
+                </div>
+            </div>
+
+            <!-- Application Information -->
+            <div class="bg-muted/30 border-y px-5 py-4">
                 <h2 class="font-semibold">Application Information</h2>
 
                 <p class="text-muted-foreground mt-1 text-sm">
@@ -82,40 +461,6 @@ const submit = () => {
             </div>
 
             <div class="grid gap-5 p-5 sm:grid-cols-2 lg:grid-cols-3">
-                <!-- Member -->
-                <div class="sm:col-span-2 lg:col-span-2">
-                    <label
-                        for="member_id"
-                        class="mb-1.5 block text-sm font-medium"
-                    >
-                        Member
-                    </label>
-
-                    <select
-                        id="member_id"
-                        v-model="form.member_id"
-                        class="border-input bg-background focus:ring-primary w-full rounded-md border px-3 py-2 text-sm outline-none focus:ring-2"
-                    >
-                        <option value="">Select member</option>
-
-                        <option
-                            v-for="member in props.members"
-                            :key="member.id"
-                            :value="String(member.id)"
-                        >
-                            {{ member.member_no }} —
-                            {{ memberName(member) }}
-                        </option>
-                    </select>
-
-                    <p
-                        v-if="form.errors.member_id"
-                        class="text-destructive mt-1 text-sm"
-                    >
-                        {{ form.errors.member_id }}
-                    </p>
-                </div>
-
                 <!-- Date -->
                 <div>
                     <label

@@ -4,10 +4,15 @@ namespace App\Services\Membership;
 
 use App\Models\Member;
 use App\Models\MembershipApplication;
+use App\Services\Financial\ShareCapitalService;
 use Illuminate\Support\Facades\DB;
 
 class MembershipApplicationService
 {
+    public function __construct(
+        private ShareCapitalService $shareCapitalService
+    ) {}
+
     /**
      * Create a new membership application.
      *
@@ -85,24 +90,6 @@ class MembershipApplicationService
     /**
      * Approve a membership application.
      */
-    // public function approveApplication(
-    //     MembershipApplication $application,
-    //     int $approvedBy
-    // ): MembershipApplication {
-    //     if ($application->status !== 'under_review') {
-    //         throw new \LogicException(
-    //             'Only applications under review can be approved.'
-    //         );
-    //     }
-
-    //     $application->update([
-    //         'status' => 'approved',
-    //         'approved_by' => $approvedBy,
-    //         'approved_at' => now(),
-    //     ]);
-
-    //     return $application->fresh();
-    // }
     public function approveApplication(
         MembershipApplication $application,
         int $approvedBy
@@ -137,9 +124,30 @@ class MembershipApplicationService
                 'residence_type' => $application->residence_type,
 
                 'membership_type' => $application->membership_type,
-                'date_joined' => now()->toDateString(),
+                'date_joined' => today(),
                 'status' => 'active',
             ]);
+
+            // Initialize the member's share capital from the approved application.
+            $this->shareCapitalService->recordSubscription(
+                $member,
+                (int) $application->shares_subscribed,
+                (float) $application->amount_subscribed,
+                $application->application_no,
+                'Initial share subscription from membership application.',
+                $approvedBy
+            );
+
+            if ((float) $application->initial_paid_up > 0) {
+                $this->shareCapitalService->recordPayment(
+                    $member,
+                    (float) $application->initial_paid_up,
+                    $application->date_of_application,
+                    $application->application_no,
+                    'Initial paid-up share capital from membership application.',
+                    $approvedBy
+                );
+            }
 
             $application->update([
                 'member_id' => $member->id,
