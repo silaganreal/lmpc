@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\CbuAccount;
 use App\Models\MembershipApplication;
 use App\Models\ShareAccount;
 use App\Models\User;
@@ -271,7 +272,8 @@ class MembershipApplicationTest extends TestCase
 
         $this->assertSame(10, $shareAccount->shares_subscribed);
         $this->assertSame('1000.00', $shareAccount->total_subscribed_amount);
-        $this->assertSame('500.00', $shareAccount->paid_up_amount);
+        // $this->assertSame('500.00', $shareAccount->paid_up_amount);
+        $this->assertSame('0.00', $shareAccount->paid_up_amount);
         $this->assertSame('active', $shareAccount->status);
 
         $this->assertDatabaseHas('share_transactions', [
@@ -282,9 +284,25 @@ class MembershipApplicationTest extends TestCase
             'amount' => '1000.00',
         ]);
 
-        $this->assertDatabaseHas('share_transactions', [
-            'share_account_id' => $shareAccount->id,
-            'transaction_type' => 'payment',
+        // $this->assertDatabaseHas('share_transactions', [
+        //     'share_account_id' => $shareAccount->id,
+        //     'transaction_type' => 'payment',
+        //     'direction' => 'credit',
+        //     'reference_no' => 'APP-2026-999995',
+        //     'amount' => '500.00',
+        // ]);
+
+        $cbuAccount = CbuAccount::where(
+            'member_id',
+            $application->member_id
+        )->first();
+
+        $this->assertNotNull($cbuAccount);
+        $this->assertSame('500.00', $cbuAccount->current_balance);
+
+        $this->assertDatabaseHas('cbu_transactions', [
+            'cbu_account_id' => $cbuAccount->id,
+            'transaction_type' => 'contribution',
             'direction' => 'credit',
             'reference_no' => 'APP-2026-999995',
             'amount' => '500.00',

@@ -424,7 +424,7 @@ const primaryAddress = (member: Member) => {
             </div>
 
             <!-- Financial Summary -->
-            <div class="bg-card overflow-hidden rounded-xl border shadow-sm">
+            <!-- <div class="bg-card overflow-hidden rounded-xl border shadow-sm">
                 <div class="bg-muted/30 border-b px-5 py-4">
                     <h2 class="font-semibold">Financial Summary</h2>
                 </div>
@@ -463,11 +463,55 @@ const primaryAddress = (member: Member) => {
                         </p>
                     </div>
                 </div>
+            </div> -->
+            <!-- Financial Summary -->
+            <div class="bg-card overflow-hidden rounded-xl border shadow-sm">
+                <div class="bg-muted/30 border-b px-5 py-4">
+                    <h2 class="font-semibold">Financial Summary</h2>
+                </div>
+
+                <div class="space-y-5 p-5">
+                    <div>
+                        <p class="text-muted-foreground text-xs">
+                            CBU / Initial Paid-Up Balance
+                        </p>
+                        <p class="text-primary mt-1 text-xl font-semibold">
+                            {{
+                                formatAmount(
+                                    member.cbu_account?.current_balance,
+                                )
+                            }}
+                        </p>
+                    </div>
+
+                    <div>
+                        <p class="text-muted-foreground text-xs">
+                            Shares Subscribed
+                        </p>
+                        <p class="mt-1 text-lg font-medium">
+                            {{ member.share_account?.shares_subscribed ?? 0 }}
+                        </p>
+                    </div>
+
+                    <div>
+                        <p class="text-muted-foreground text-xs">
+                            Total Share Subscription
+                        </p>
+                        <p class="mt-1 font-medium">
+                            {{
+                                formatAmount(
+                                    member.share_account
+                                        ?.total_subscribed_amount,
+                                )
+                            }}
+                        </p>
+                    </div>
+                </div>
             </div>
         </div>
 
         <!-- Share Capital Transaction -->
-        <div class="bg-card rounded-lg border p-6">
+        <!-- <div class="bg-card rounded-lg border p-6">
             <div class="flex items-center justify-between">
                 <div>
                     <h2 class="text-lg font-semibold">
@@ -543,7 +587,7 @@ const primaryAddress = (member: Member) => {
                     No share capital transactions recorded yet.
                 </p>
             </div>
-        </div>
+        </div> -->
 
         <!-- CBU -->
         <div class="bg-card rounded-lg border p-6">

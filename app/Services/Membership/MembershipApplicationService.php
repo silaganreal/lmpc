@@ -4,13 +4,15 @@ namespace App\Services\Membership;
 
 use App\Models\Member;
 use App\Models\MembershipApplication;
+use App\Services\Financial\CbuService;
 use App\Services\Financial\ShareCapitalService;
 use Illuminate\Support\Facades\DB;
 
 class MembershipApplicationService
 {
     public function __construct(
-        private ShareCapitalService $shareCapitalService
+        private ShareCapitalService $shareCapitalService,
+        private CbuService $cbuService
     ) {}
 
     /**
@@ -138,13 +140,24 @@ class MembershipApplicationService
                 $approvedBy
             );
 
+            // if ((float) $application->initial_paid_up > 0) {
+            //     $this->shareCapitalService->recordPayment(
+            //         $member,
+            //         (float) $application->initial_paid_up,
+            //         $application->date_of_application,
+            //         $application->application_no,
+            //         'Initial paid-up share capital from membership application.',
+            //         $approvedBy
+            //     );
+            // }
+
             if ((float) $application->initial_paid_up > 0) {
-                $this->shareCapitalService->recordPayment(
+                $this->cbuService->contribute(
                     $member,
                     (float) $application->initial_paid_up,
                     $application->date_of_application,
                     $application->application_no,
-                    'Initial paid-up share capital from membership application.',
+                    'Initial paid-up contribution from membership application.',
                     $approvedBy
                 );
             }

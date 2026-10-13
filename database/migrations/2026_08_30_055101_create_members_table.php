@@ -24,7 +24,7 @@ return new class extends Migration
 
             $table->date('date_of_birth')->nullable();
 
-            $table->enum('sex', ['male', 'female'])->nullable();
+            $table->enum('sex', ['male', 'female', 'prefer_not_to_mention'])->nullable();
             $table->enum('civil_status', [
                 'single',
                 'married',

@@ -38,18 +38,33 @@ class LoanApplicationService
             );
         }
 
-        $cbuRetention = $principalAmount * 0.03;
+        // CBU retention: 3.5% for Providential 1, Providential 2, and Emergency.
+        $cbuRetention = in_array(
+            $loanProduct->code,
+            ['PROVIDENTIAL_1', 'PROVIDENTIAL_2', 'EMERGENCY'],
+            true
+        )
+            ? round($principalAmount * 0.035, 2)
+            : 0.0;
 
+        // Insurance: 1.2% per year, except LAB.
+        $insurancePremium = $loanProduct->code === 'LAB'
+            ? 0.0
+            : round(
+                $principalAmount * 0.012 * ($termMonths / 12),
+                2
+            );
+
+        // Service fee: 2%, capped at ₱1,600.
         $serviceFee = min(
-            $principalAmount * 0.02,
-            1_600
+            round($principalAmount * 0.02, 2),
+            1_600.00
         );
 
+        // Notarial fee applies to loans of ₱30,000 or more.
         $notarialFee = $principalAmount >= 30_000
-            ? 150
-            : 0;
-
-        $insurancePremium = 0;
+            ? 150.00
+            : 0.0;
 
         $totalDeductions = $cbuRetention
             + $serviceFee

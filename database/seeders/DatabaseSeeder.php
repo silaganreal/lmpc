@@ -16,7 +16,7 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             LoanProductSeeder::class,
-            DevelopmentSeeder::class,
+            // DevelopmentSeeder::class,
         ]);
     }
 }

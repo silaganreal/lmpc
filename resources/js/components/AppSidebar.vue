@@ -26,14 +26,14 @@ const mainNavItems: NavItem[] = [
         icon: LayoutGrid,
     },
     {
-        title: 'Members',
-        href: '/members',
-        icon: Users,
-    },
-    {
         title: 'Membership Applications',
         href: '/membership-applications',
         icon: FileText,
+    },
+    {
+        title: 'Members',
+        href: '/members',
+        icon: Users,
     },
 ];
 </script>

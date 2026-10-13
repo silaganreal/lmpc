@@ -83,7 +83,7 @@ class LoanApplicationTest extends TestCase
         );
 
         $this->assertSame(
-            1_200.00,
+            1_400.00,
             (float) $loan->cbu_retention
         );
 
@@ -93,12 +93,17 @@ class LoanApplicationTest extends TestCase
         );
 
         $this->assertSame(
+            480.00,
+            (float) $loan->insurance_premium
+        );
+
+        $this->assertSame(
             150.00,
             (float) $loan->notarial_fee
         );
 
         $this->assertSame(
-            37_850.00,
+            37_170.00,
             (float) $loan->net_process
         );
 

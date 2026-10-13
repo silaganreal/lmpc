@@ -30,7 +30,7 @@ class UpdateMemberRequest extends FormRequest
             'suffix' => ['nullable', 'string', 'max:20'],
 
             'date_of_birth' => ['nullable', 'date'],
-            'sex' => ['nullable', Rule::in(['male', 'female'])],
+            'sex' => ['nullable', Rule::in(['male', 'female', 'prefer_not_to_mention'])],
 
             'civil_status' => [
                 'nullable',

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\CbuController;
+use App\Http\Controllers\CollectionController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LoanController;
 use App\Http\Controllers\LoanPaymentController;
@@ -101,6 +102,9 @@ Route::middleware(['auth'])->group(function () {
 
     Route::post('/loans/{loan}/payments', [LoanPaymentController::class, 'store'])
         ->name('loans.payments.store');
+
+    Route::get('/collections', [CollectionController::class, 'index'])
+        ->name('collections.index');
 });
 
 require __DIR__.'/settings.php';

@@ -69,7 +69,7 @@ class MembershipApplicationController extends Controller
             'suffix' => ['nullable', 'string', 'max:20'],
 
             'date_of_birth' => ['nullable', 'date'],
-            'sex' => ['nullable', 'in:male,female'],
+            'sex' => ['nullable', 'in:male,female,prefer_not_to_mention'],
             'civil_status' => [
                 'nullable',
                 'in:single,married,widowed,separated,divorced',
@@ -219,7 +219,7 @@ class MembershipApplicationController extends Controller
             'suffix' => ['nullable', 'string', 'max:20'],
 
             'date_of_birth' => ['nullable', 'date'],
-            'sex' => ['nullable', 'in:male,female'],
+            'sex' => ['nullable', 'in:male,female,prefer_not_to_mention'],
             'civil_status' => [
                 'nullable',
                 'in:single,married,widowed,separated,divorced',

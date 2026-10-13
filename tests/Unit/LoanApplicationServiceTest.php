@@ -21,21 +21,6 @@ class LoanApplicationServiceTest extends TestCase
         $this->seed(LoanProductSeeder::class);
     }
 
-    public function test_calculates_three_percent_cbu_retention(): void
-    {
-        $member = $this->createMember();
-        $product = LoanProduct::where('code', 'EMERGENCY')->firstOrFail();
-
-        $result = app(LoanApplicationService::class)->calculateDeductions(
-            member: $member,
-            loanProduct: $product,
-            principalAmount: 10_000,
-            termMonths: 12,
-        );
-
-        $this->assertSame(300.0, $result['cbu_retention']);
-    }
-
     public function test_calculates_two_percent_service_fee(): void
     {
         $member = $this->createMember();
@@ -109,15 +94,15 @@ class LoanApplicationServiceTest extends TestCase
         );
 
         /*
-         * Principal:       30,000
-         * CBU 3%:             900
-         * Service fee 2%:     600
-         * Insurance:            0
-         * Notarial fee:       150
+         * Principal:           30,000
+         * CBU retention 3.5%:  1,050
+         * Service fee 2%:      600
+         * Insurance 1.2%:      360
+         * Notarial fee:        150
          * -----------------------
-         * Net process:      28,350
+         * Net process:         27,840
          */
-        $this->assertSame(28_350.0, $result['net_process']);
+        $this->assertSame(27_840.0, $result['net_process']);
     }
 
     public function test_rejects_zero_principal_amount(): void
@@ -173,10 +158,11 @@ class LoanApplicationServiceTest extends TestCase
         $this->assertSame($loanProduct->id, $loan->loan_product_id);
 
         $this->assertSame(40_000.00, (float) $loan->principal_amount);
-        $this->assertSame(1_200.00, (float) $loan->cbu_retention);
         $this->assertSame(800.00, (float) $loan->service_fee);
+        $this->assertSame(1_400.00, (float) $loan->cbu_retention);
+        $this->assertSame(480.00, (float) $loan->insurance_premium);
         $this->assertSame(150.00, (float) $loan->notarial_fee);
-        $this->assertSame(37_850.00, (float) $loan->net_process);
+        $this->assertSame(37_170.00, (float) $loan->net_process);
 
         $this->assertSame('draft', $loan->status);
         $this->assertSame('Emergency expenses', $loan->purpose);
@@ -255,5 +241,23 @@ class LoanApplicationServiceTest extends TestCase
             'date_joined' => now()->toDateString(),
             'status' => 'active',
         ]);
+    }
+
+    public function test_emergency_loan_has_three_point_five_percent_cbu_retention(): void
+    {
+        $member = $this->createMember();
+
+        foreach (['PROVIDENTIAL_1', 'PROVIDENTIAL_2', 'EMERGENCY'] as $code) {
+            $product = LoanProduct::where('code', $code)->firstOrFail();
+
+            $result = app(LoanApplicationService::class)->calculateDeductions(
+                member: $member,
+                loanProduct: $product,
+                principalAmount: 10_000,
+                termMonths: 12,
+            );
+
+            $this->assertSame(350.0, $result['cbu_retention']);
+        }
     }
 }
