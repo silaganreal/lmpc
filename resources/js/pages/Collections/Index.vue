@@ -245,7 +245,7 @@ const isOverdue = (installment: Installment) =>
                                     "
                                     class="text-primary font-medium hover:underline"
                                 >
-                                    View Loan
+                                    Record Payment
                                 </Link>
                             </td>
                         </tr>

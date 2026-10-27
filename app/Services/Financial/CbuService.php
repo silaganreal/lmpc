@@ -109,4 +109,48 @@ class CbuService
             return $transaction;
         });
     }
+
+    public function creditLoanPaymentExcess(
+        Member $member,
+        float $amount,
+        string $transactionDate,
+        ?string $referenceNo = null,
+        ?string $description = null,
+        ?int $createdBy = null,
+    ): CbuTransaction {
+        if ($amount <= 0) {
+            throw new InvalidArgumentException(
+                'CBU excess amount must be greater than zero.'
+            );
+        }
+
+        return DB::transaction(function () use (
+            $member,
+            $amount,
+            $transactionDate,
+            $referenceNo,
+            $description,
+            $createdBy,
+        ) {
+            $account = $this->createAccount($member);
+
+            $account = CbuAccount::whereKey($account->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            $transaction = $account->transactions()->create([
+                'transaction_date' => $transactionDate,
+                'transaction_type' => 'transfer',
+                'direction' => 'credit',
+                'reference_no' => $referenceNo,
+                'description' => $description,
+                'amount' => round($amount, 2),
+                'created_by' => $createdBy,
+            ]);
+
+            $account->increment('current_balance', round($amount, 2));
+
+            return $transaction;
+        });
+    }
 }

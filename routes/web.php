@@ -5,6 +5,7 @@ use App\Http\Controllers\CollectionController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LoanController;
 use App\Http\Controllers\LoanPaymentController;
+use App\Http\Controllers\LoanRestructuringController;
 use App\Http\Controllers\MemberController;
 use App\Http\Controllers\MembershipApplicationController;
 use App\Http\Controllers\SavingsController;
@@ -105,6 +106,18 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/collections', [CollectionController::class, 'index'])
         ->name('collections.index');
+
+    Route::get('/loan-restructurings', [LoanRestructuringController::class, 'index'])
+        ->name('loan-restructurings.index');
+
+    Route::patch('/loan-restructurings/{loanRestructuring}/approve', [LoanRestructuringController::class, 'approve'])
+        ->name('loan-restructurings.approve');
+
+    Route::patch('/loan-restructurings/{loanRestructuring}/reject', [LoanRestructuringController::class, 'reject'])
+        ->name('loan-restructurings.reject');
+
+    Route::post('/loans/{loan}/restructurings', [LoanRestructuringController::class, 'store'])
+        ->name('loans.restructurings.store');
 });
 
 require __DIR__.'/settings.php';

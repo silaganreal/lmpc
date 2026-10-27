@@ -9,6 +9,7 @@ class LoanPayment extends Model
 {
     protected $fillable = [
         'loan_id',
+        'loan_restructuring_amortization_id',
         'payment_date',
         'reference_no',
         'principal_amount',
@@ -37,6 +38,17 @@ class LoanPayment extends Model
     public function loan(): BelongsTo
     {
         return $this->belongsTo(Loan::class);
+    }
+
+    /**
+     * @return BelongsTo<LoanRestructuringAmortization, $this>
+     */
+    public function restructuringAmortization(): BelongsTo
+    {
+        return $this->belongsTo(
+            LoanRestructuringAmortization::class,
+            'loan_restructuring_amortization_id'
+        );
     }
 
     /**

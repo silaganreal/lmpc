@@ -128,6 +128,23 @@ defineOptions({
 
             <div class="grid gap-4 p-5 md:grid-cols-2">
                 <Link
+                    href="/membership-applications"
+                    class="hover:border-primary/40 hover:bg-secondary/40 rounded-lg border p-4 transition"
+                >
+                    <div class="flex items-center gap-3">
+                        <FileText class="text-primary size-5" />
+
+                        <div>
+                            <p class="font-medium">Membership Applications</p>
+
+                            <p class="text-muted-foreground text-sm">
+                                Application processing will be available here.
+                            </p>
+                        </div>
+                    </div>
+                </Link>
+
+                <Link
                     href="/members"
                     class="hover:border-primary/40 hover:bg-secondary/40 rounded-lg border p-4 transition"
                 >
@@ -143,20 +160,6 @@ defineOptions({
                         </div>
                     </div>
                 </Link>
-
-                <div class="rounded-lg border p-4 opacity-70">
-                    <div class="flex items-center gap-3">
-                        <FileText class="text-primary size-5" />
-
-                        <div>
-                            <p class="font-medium">Membership Applications</p>
-
-                            <p class="text-muted-foreground text-sm">
-                                Application processing will be available here.
-                            </p>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
     </div>

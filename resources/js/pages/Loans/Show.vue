@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import { Head, Link, router } from '@inertiajs/vue3';
+import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { route } from 'ziggy-js';
 
 import {
@@ -55,6 +55,30 @@ interface LoanPayment {
     remarks: string | null;
 }
 
+interface LoanRestructuringAmortization {
+    id: number;
+    installment_no: number;
+    due_date: string;
+    beginning_balance: string | number;
+    principal_amount: string | number;
+    interest_amount: string | number;
+    total_due: string | number;
+    paid_amount: string | number;
+    paid_date: string | null;
+    status: string;
+}
+
+interface LoanRestructuring {
+    id: number;
+    status: string;
+    approved_term_years: number | null;
+    remaining_principal: string | number | null;
+    deferred_interest: string | number;
+    penalties: string | number;
+    restructured_at: string | null;
+    amortizations: LoanRestructuringAmortization[];
+}
+
 interface Loan {
     id: number;
     loan_no: string;
@@ -84,6 +108,7 @@ interface Loan {
     loan_product: LoanProduct;
     amortizations: LoanAmortization[];
     payments: LoanPayment[];
+    restructurings: LoanRestructuring[];
 }
 
 interface Props {
@@ -132,6 +157,18 @@ const statusLabel = computed(() => {
     );
 });
 
+const activeRestructuring = computed(() => {
+    return (
+        props.loan.restructurings?.find(
+            (restructuring) =>
+                restructuring.status === 'approved' &&
+                restructuring.amortizations?.some((schedule) =>
+                    ['pending', 'partial'].includes(schedule.status),
+                ),
+        ) ?? null
+    );
+});
+
 const totalInterest = computed(() => {
     const principal = Number(props.loan.principal_amount) || 0;
     const monthlyRate = Number(props.loan.interest_rate_monthly) || 0;
@@ -145,6 +182,27 @@ const totalPayable = computed(() => {
 
     return principal + totalInterest.value;
 });
+
+// Restructuring
+const restructuringForm = useForm({
+    request_date: new Date().toLocaleDateString('en-CA'),
+    request_reason: '',
+    requested_term_years: 1,
+});
+
+const submitRestructuringRequest = () => {
+    if (!confirm('Submit this loan for restructuring review?')) {
+        return;
+    }
+
+    restructuringForm.post(route('loans.restructurings.store', props.loan.id), {
+        preserveScroll: true,
+        onSuccess: () => {
+            restructuringForm.reset('request_reason');
+            restructuringForm.requested_term_years = 1;
+        },
+    });
+};
 
 const submitApplication = () => {
     if (
@@ -686,8 +744,17 @@ const submitPayment = () => {
                     <h2 class="text-lg font-semibold">Record Loan Payment</h2>
 
                     <p class="text-muted-foreground mt-1 text-sm">
-                        Record a payment against this loan. Payments are applied
-                        to penalty, interest, and principal.
+                        <template v-if="activeRestructuring">
+                            Payment will be applied to the approved restructured
+                            amortization schedule. Deferred interest and
+                            penalties are tracked separately.
+                        </template>
+
+                        <template v-else>
+                            Payment will be applied to the original loan
+                            schedule, allocating payment to penalty, interest,
+                            and principal.
+                        </template>
                     </p>
                 </div>
 
@@ -795,6 +862,132 @@ const submitPayment = () => {
                 </div>
             </div>
 
+            <!-- Loan Restructuring Request -->
+            <section
+                v-if="['released', 'active', 'past_due'].includes(loan.status)"
+                class="mt-6 mb-6 rounded-xl border p-6"
+            >
+                <div class="mb-4">
+                    <h2 class="text-lg font-semibold">
+                        Request Loan Restructuring
+                    </h2>
+                    <p class="text-muted-foreground mt-1 text-sm">
+                        Submit a request for board review. The board will
+                        determine the approved repayment term.
+                    </p>
+                </div>
+
+                <form
+                    class="space-y-4"
+                    @submit.prevent="submitRestructuringRequest"
+                >
+                    <div>
+                        <label
+                            for="restructuring-request-date"
+                            class="mb-1 block text-sm font-medium"
+                        >
+                            Request Date
+                        </label>
+
+                        <input
+                            id="restructuring-request-date"
+                            v-model="restructuringForm.request_date"
+                            type="date"
+                            required
+                            class="border-input bg-background w-full rounded-md border px-3 py-2 text-sm"
+                        />
+
+                        <p
+                            v-if="restructuringForm.errors.request_date"
+                            class="mt-1 text-sm text-red-600"
+                        >
+                            {{ restructuringForm.errors.request_date }}
+                        </p>
+                    </div>
+
+                    <div>
+                        <label
+                            for="requested-term-years"
+                            class="mb-1 block text-sm font-medium"
+                        >
+                            Requested Restructuring Term
+                        </label>
+
+                        <select
+                            id="requested-term-years"
+                            v-model.number="
+                                restructuringForm.requested_term_years
+                            "
+                            required
+                            class="border-input bg-background w-full rounded-md border px-3 py-2 text-sm"
+                        >
+                            <option :value="1">1 year</option>
+                            <option :value="2">2 years</option>
+                            <option :value="3">3 years</option>
+                            <option :value="4">4 years</option>
+                            <option :value="5">5 years</option>
+                        </select>
+
+                        <p class="text-muted-foreground mt-1 text-xs">
+                            This is the requested term, not the final
+                            board-approved term.
+                        </p>
+
+                        <p
+                            v-if="restructuringForm.errors.requested_term_years"
+                            class="mt-1 text-sm text-red-600"
+                        >
+                            {{ restructuringForm.errors.requested_term_years }}
+                        </p>
+                    </div>
+
+                    <div>
+                        <label
+                            for="restructuring-request-reason"
+                            class="mb-1 block text-sm font-medium"
+                        >
+                            Reason for Restructuring
+                        </label>
+
+                        <textarea
+                            id="restructuring-request-reason"
+                            v-model="restructuringForm.request_reason"
+                            required
+                            rows="4"
+                            maxlength="5000"
+                            placeholder="Explain why the borrower can no longer meet the current monthly amortization."
+                            class="border-input bg-background w-full rounded-md border px-3 py-2 text-sm"
+                        />
+
+                        <p
+                            v-if="restructuringForm.errors.request_reason"
+                            class="mt-1 text-sm text-red-600"
+                        >
+                            {{ restructuringForm.errors.request_reason }}
+                        </p>
+                    </div>
+
+                    <!-- <p
+                        v-if="restructuringForm.errors.loan"
+                        class="text-sm text-red-600"
+                    >
+                        {{ restructuringForm.errors.loan }}
+                    </p> -->
+
+                    <button
+                        type="submit"
+                        :disabled="restructuringForm.processing"
+                        class="bg-primary text-primary-foreground inline-flex items-center rounded-md px-4 py-2 text-sm font-medium disabled:opacity-50"
+                    >
+                        {{
+                            restructuringForm.processing
+                                ? 'Submitting...'
+                                : 'Submit Restructuring Request'
+                        }}
+                    </button>
+                </form>
+            </section>
+
             <!-- Amortization Schedule -->
             <div
                 v-if="loan.amortizations?.length"
@@ -897,6 +1090,137 @@ const submitPayment = () => {
                                     >
                                         {{ schedule.status }}
                                     </span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Restructured Amortization Schedule -->
+            <div
+                v-if="activeRestructuring"
+                class="bg-card mt-6 rounded-lg border p-6 shadow-sm"
+            >
+                <div class="mb-6">
+                    <h2 class="text-lg font-semibold">
+                        Restructured Amortization Schedule
+                    </h2>
+
+                    <p class="text-muted-foreground mt-1 text-sm">
+                        Approved term:
+                        {{ activeRestructuring.approved_term_years }} year(s).
+                        Payments are applied to this schedule while it has
+                        unpaid installments.
+                    </p>
+
+                    <div class="mt-3 grid gap-4 sm:grid-cols-3">
+                        <div>
+                            <p class="text-muted-foreground text-sm">
+                                Restructured Principal
+                            </p>
+                            <p class="font-semibold">
+                                {{
+                                    formatCurrency(
+                                        activeRestructuring.remaining_principal ??
+                                            0,
+                                    )
+                                }}
+                            </p>
+                        </div>
+
+                        <div>
+                            <p class="text-muted-foreground text-sm">
+                                Deferred Interest (Tracked Separately)
+                            </p>
+                            <p class="font-semibold">
+                                {{
+                                    formatCurrency(
+                                        activeRestructuring.deferred_interest,
+                                    )
+                                }}
+                            </p>
+                        </div>
+
+                        <div>
+                            <p class="text-muted-foreground text-sm">
+                                Outstanding Penalties (Tracked Separately)
+                            </p>
+                            <p class="font-semibold">
+                                {{
+                                    formatCurrency(
+                                        activeRestructuring.penalties,
+                                    )
+                                }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead>
+                            <tr class="border-b text-left">
+                                <th class="px-3 py-3">#</th>
+                                <th class="px-3 py-3">Due Date</th>
+                                <th class="px-3 py-3 text-right">
+                                    Beginning Balance
+                                </th>
+                                <th class="px-3 py-3 text-right">Principal</th>
+                                <th class="px-3 py-3 text-right">Interest</th>
+                                <th class="px-3 py-3 text-right">Total Due</th>
+                                <th class="px-3 py-3 text-right">Paid</th>
+                                <th class="px-3 py-3">Paid Date</th>
+                                <th class="px-3 py-3 text-center">Status</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            <tr
+                                v-for="schedule in activeRestructuring.amortizations"
+                                :key="schedule.id"
+                                class="border-b last:border-0"
+                            >
+                                <td class="px-3 py-3">
+                                    {{ schedule.installment_no }}
+                                </td>
+                                <td class="px-3 py-3">
+                                    {{ formatDate(schedule.due_date) }}
+                                </td>
+                                <td class="px-3 py-3 text-right">
+                                    {{
+                                        formatCurrency(
+                                            schedule.beginning_balance,
+                                        )
+                                    }}
+                                </td>
+                                <td class="px-3 py-3 text-right">
+                                    {{
+                                        formatCurrency(
+                                            schedule.principal_amount,
+                                        )
+                                    }}
+                                </td>
+                                <td class="px-3 py-3 text-right">
+                                    {{
+                                        formatCurrency(schedule.interest_amount)
+                                    }}
+                                </td>
+                                <td class="px-3 py-3 text-right">
+                                    {{ formatCurrency(schedule.total_due) }}
+                                </td>
+                                <td class="px-3 py-3 text-right">
+                                    {{ formatCurrency(schedule.paid_amount) }}
+                                </td>
+                                <td class="px-3 py-3">
+                                    {{
+                                        schedule.paid_date
+                                            ? formatDate(schedule.paid_date)
+                                            : '—'
+                                    }}
+                                </td>
+                                <td class="px-3 py-3 text-center">
+                                    {{ schedule.status }}
                                 </td>
                             </tr>
                         </tbody>
