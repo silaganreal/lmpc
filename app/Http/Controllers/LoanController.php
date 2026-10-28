@@ -121,29 +121,16 @@ class LoanController extends Controller
             ->with('success', 'Loan application submitted for review.');
     }
 
-    // public function show(Loan $loan): Response
-    // {
-    //     $loan->load([
-    //         'member',
-    //         'loanProduct',
-    //         'amortizations',
-    //         'payments',
-    //     ]);
-
-    //     // dd($loan->toArray());
-
-    //     return Inertia::render('Loans/Show', [
-    //         'loan' => $loan,
-    //     ]);
-    // }
-
     public function show(Loan $loan): Response
     {
         $loan->load([
             'member',
             'loanProduct',
             'amortizations',
-            'payments',
+            'payments' => fn ($query) => $query
+                ->with('createdBy:id,name')
+                ->orderByDesc('payment_date')
+                ->orderByDesc('id'),
             'restructurings' => fn ($query) => $query
                 ->with([
                     'requestedBy',

@@ -53,6 +53,10 @@ interface LoanPayment {
     total_amount: string | number;
     payment_method: string;
     remarks: string | null;
+    created_by: {
+        id: number;
+        name: string;
+    } | null;
 }
 
 interface LoanRestructuringAmortization {
@@ -1248,6 +1252,9 @@ const submitPayment = () => {
                                 <th class="px-3 py-3 font-medium">Date</th>
                                 <th class="px-3 py-3 font-medium">Reference</th>
                                 <th class="px-3 py-3 font-medium">Method</th>
+                                <th class="px-3 py-3 font-medium">
+                                    Recorded By
+                                </th>
                                 <th class="px-3 py-3 text-right font-medium">
                                     Principal
                                 </th>
@@ -1278,6 +1285,9 @@ const submitPayment = () => {
                                     {{
                                         payment.payment_method.replace('_', ' ')
                                     }}
+                                </td>
+                                <td class="px-3 py-3">
+                                    {{ payment.created_by?.name || 'Unknown' }}
                                 </td>
                                 <td class="px-3 py-3 text-right">
                                     {{
