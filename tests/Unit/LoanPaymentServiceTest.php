@@ -12,6 +12,7 @@ use App\Models\Member;
 use App\Models\User;
 use App\Services\Financial\LoanPaymentService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 use Tests\TestCase;
 
@@ -305,6 +306,46 @@ class LoanPaymentServiceTest extends TestCase
         );
     }
 
+    public function test_restructuring_payment_does_not_change_original_loan_balances(): void
+    {
+        $loan = $this->createReleasedLoan();
+        $this->createApprovedRestructuring($loan);
+
+        $originalPrincipal = (float) $loan->outstanding_principal;
+        $originalInterest = (float) $loan->outstanding_interest;
+        $originalPenalty = (float) $loan->outstanding_penalty;
+        $originalStatus = $loan->status;
+
+        $this->service->recordRestructuringPayment(
+            loan: $loan,
+            amount: 20.00,
+            paymentDate: '2026-10-26',
+            referenceNo: 'RST-INTEGRITY-001',
+        );
+
+        $loan->refresh();
+
+        $this->assertEqualsWithDelta(
+            $originalPrincipal,
+            (float) $loan->outstanding_principal,
+            0.01,
+        );
+
+        $this->assertEqualsWithDelta(
+            $originalInterest,
+            (float) $loan->outstanding_interest,
+            0.01,
+        );
+
+        $this->assertEqualsWithDelta(
+            $originalPenalty,
+            (float) $loan->outstanding_penalty,
+            0.01,
+        );
+
+        $this->assertSame($originalStatus, $loan->status);
+    }
+
     public function test_it_applies_restructuring_payment_to_multiple_installments(): void
     {
         $loan = $this->createReleasedLoan();
@@ -372,6 +413,26 @@ class LoanPaymentServiceTest extends TestCase
             'current_balance' => '100.00',
         ]);
 
+        $this->assertEqualsWithDelta(
+            100.00,
+            (float) $payments->sum('total_amount') + 100.00 - $totalDue,
+            0.01,
+        );
+
+        $this->assertSame(
+            12,
+            $restructuring->amortizations()
+                ->where('status', 'paid')
+                ->count(),
+        );
+
+        $this->assertSame(
+            0,
+            $restructuring->amortizations()
+                ->whereIn('status', ['pending', 'partial'])
+                ->count(),
+        );
+
         // The original loan's schedule and status remain unchanged.
         $loan->refresh();
 
@@ -380,6 +441,30 @@ class LoanPaymentServiceTest extends TestCase
         $this->assertSame(
             12,
             $loan->amortizations()->where('status', 'pending')->count(),
+        );
+    }
+
+    public function test_it_rejects_restructuring_payment_when_no_installments_are_unpaid(): void
+    {
+        $loan = $this->createReleasedLoan();
+        $restructuring = $this->createApprovedRestructuring($loan);
+
+        $restructuring->amortizations()->update([
+            'paid_amount' => DB::raw('total_due'),
+            'paid_date' => '2026-10-26',
+            'status' => 'paid',
+        ]);
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage(
+            'This loan has no approved restructuring with unpaid installments.'
+        );
+
+        $this->service->recordRestructuringPayment(
+            loan: $loan,
+            amount: 100.00,
+            paymentDate: '2026-10-26',
+            referenceNo: 'RST-ALL-PAID',
         );
     }
 

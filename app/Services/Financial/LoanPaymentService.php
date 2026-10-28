@@ -147,6 +147,129 @@ class LoanPaymentService
      *
      * @return Collection<int, LoanPayment>
      */
+    // public function recordRestructuringPayment(
+    //     Loan $loan,
+    //     float $amount,
+    //     string $paymentDate,
+    //     ?string $referenceNo = null,
+    //     string $paymentMethod = 'cash',
+    //     ?string $remarks = null,
+    //     ?int $createdBy = null,
+    // ): Collection {
+    //     if ($amount <= 0) {
+    //         throw new InvalidArgumentException(
+    //             'Payment amount must be greater than zero.'
+    //         );
+    //     }
+
+    //     return DB::transaction(function () use (
+    //         $loan,
+    //         $amount,
+    //         $paymentDate,
+    //         $referenceNo,
+    //         $paymentMethod,
+    //         $remarks,
+    //         $createdBy,
+    //     ): Collection {
+    //         $loan = Loan::query()
+    //             ->whereKey($loan->id)
+    //             ->lockForUpdate()
+    //             ->firstOrFail();
+
+    //         $restructuring = LoanRestructuring::query()
+    //             ->where('loan_id', $loan->id)
+    //             ->where('status', 'approved')
+    //             ->whereHas('amortizations', function ($query): void {
+    //                 $query->whereIn('status', ['pending', 'partial']);
+    //             })
+    //             ->latest('restructured_at')
+    //             ->lockForUpdate()
+    //             ->first();
+
+    //         if (! $restructuring) {
+    //             throw new InvalidArgumentException(
+    //                 'This loan has no approved restructuring with unpaid installments.'
+    //             );
+    //         }
+
+    //         $amortizations = LoanRestructuringAmortization::query()
+    //             ->where('loan_restructuring_id', $restructuring->id)
+    //             ->whereIn('status', ['pending', 'partial'])
+    //             ->orderBy('installment_no')
+    //             ->lockForUpdate()
+    //             ->get();
+
+    //         $remainingPayment = round($amount, 2);
+    //         $payments = collect();
+
+    //         foreach ($amortizations as $amortization) {
+    //             if ($remainingPayment <= 0) {
+    //                 break;
+    //             }
+
+    //             $result = $this->allocateToRestructuringAmortization(
+    //                 $amortization,
+    //                 $remainingPayment,
+    //                 Carbon::parse($paymentDate)->toDateString(),
+    //             );
+
+    //             if ($result['applied'] <= 0) {
+    //                 continue;
+    //             }
+
+    //             $payment = LoanPayment::create([
+    //                 'loan_id' => $loan->id,
+    //                 'loan_restructuring_amortization_id' => $amortization->id,
+    //                 'payment_date' => Carbon::parse($paymentDate)->toDateString(),
+    //                 'reference_no' => $referenceNo,
+    //                 'principal_amount' => $result['principal'],
+    //                 'interest_amount' => $result['interest'],
+    //                 'penalty_amount' => 0,
+    //                 'total_amount' => $result['applied'],
+    //                 'payment_method' => $paymentMethod,
+    //                 'remarks' => $remarks,
+    //                 'created_by' => $createdBy,
+    //             ]);
+
+    //             $payments->push($payment);
+
+    //             $remainingPayment = round(
+    //                 $remainingPayment - $result['applied'],
+    //                 2,
+    //             );
+    //         }
+
+    //         if ($payments->isEmpty()) {
+    //             throw new InvalidArgumentException(
+    //                 'No unpaid restructuring installment could receive this payment.'
+    //             );
+    //         }
+
+    //         if ($remainingPayment > 0) {
+    //             $loan->loadMissing('member');
+
+    //             $this->cbuService->creditLoanPaymentExcess(
+    //                 member: $loan->member,
+    //                 amount: $remainingPayment,
+    //                 transactionDate: Carbon::parse($paymentDate)->toDateString(),
+    //                 referenceNo: $referenceNo,
+    //                 description: sprintf(
+    //                     'Excess from restructured loan payment for loan %s.',
+    //                     $loan->loan_no,
+    //                 ),
+    //                 createdBy: $createdBy,
+    //             );
+    //         }
+
+    //         return $payments;
+    //     });
+    // }
+
+    /**
+     * Record a payment against an approved restructuring schedule.
+     *
+     * @return Collection<int, LoanPayment>
+     */
     public function recordRestructuringPayment(
         Loan $loan,
         float $amount,
@@ -156,16 +279,26 @@ class LoanPaymentService
         ?string $remarks = null,
         ?int $createdBy = null,
     ): Collection {
+        if (! is_finite($amount) || $amount <= 0) {
+            throw new InvalidArgumentException(
+                'Payment amount must be greater than zero.'
+            );
+        }
+
+        $amount = round($amount, 2);
+
         if ($amount <= 0) {
             throw new InvalidArgumentException(
                 'Payment amount must be greater than zero.'
             );
         }
 
+        $effectivePaymentDate = Carbon::parse($paymentDate)->toDateString();
+
         return DB::transaction(function () use (
             $loan,
             $amount,
-            $paymentDate,
+            $effectivePaymentDate,
             $referenceNo,
             $paymentMethod,
             $remarks,
@@ -199,7 +332,7 @@ class LoanPaymentService
                 ->lockForUpdate()
                 ->get();
 
-            $remainingPayment = round($amount, 2);
+            $remainingPayment = $amount;
             $payments = collect();
 
             foreach ($amortizations as $amortization) {
@@ -210,7 +343,7 @@ class LoanPaymentService
                 $result = $this->allocateToRestructuringAmortization(
                     $amortization,
                     $remainingPayment,
-                    Carbon::parse($paymentDate)->toDateString(),
+                    $effectivePaymentDate,
                 );
 
                 if ($result['applied'] <= 0) {
@@ -220,7 +353,7 @@ class LoanPaymentService
                 $payment = LoanPayment::create([
                     'loan_id' => $loan->id,
                     'loan_restructuring_amortization_id' => $amortization->id,
-                    'payment_date' => Carbon::parse($paymentDate)->toDateString(),
+                    'payment_date' => $effectivePaymentDate,
                     'reference_no' => $referenceNo,
                     'principal_amount' => $result['principal'],
                     'interest_amount' => $result['interest'],
@@ -245,13 +378,15 @@ class LoanPaymentService
                 );
             }
 
+            // Only the amount not applied to restructuring installments
+            // is transferred to the member's CBU.
             if ($remainingPayment > 0) {
                 $loan->loadMissing('member');
 
                 $this->cbuService->creditLoanPaymentExcess(
                     member: $loan->member,
                     amount: $remainingPayment,
-                    transactionDate: Carbon::parse($paymentDate)->toDateString(),
+                    transactionDate: $effectivePaymentDate,
                     referenceNo: $referenceNo,
                     description: sprintf(
                         'Excess from restructured loan payment for loan %s.',
