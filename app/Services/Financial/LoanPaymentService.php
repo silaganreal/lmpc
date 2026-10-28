@@ -36,6 +36,20 @@ class LoanPaymentService
             );
         }
 
+        // if ($amount <= 0) {
+        //     throw new InvalidArgumentException(
+        //         'Payment amount must be greater than zero.'
+        //     );
+        // }
+
+        if (! is_finite($amount) || $amount <= 0) {
+            throw new InvalidArgumentException(
+                'Payment amount must be greater than zero.'
+            );
+        }
+
+        $amount = round($amount, 2);
+
         if ($amount <= 0) {
             throw new InvalidArgumentException(
                 'Payment amount must be greater than zero.'
@@ -54,7 +68,22 @@ class LoanPaymentService
             $remarks,
             $createdBy,
         ): LoanPayment {
-            $loan->refresh();
+            $loan = Loan::query()
+                ->whereKey($loan->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            // Check the loan status again after acquiring the lock.
+            if (! in_array($loan->status, ['released', 'active', 'past_due'], true)) {
+                throw new InvalidArgumentException(
+                    'Only released, active, or past due loans can receive payments.'
+                );
+            }
+
+            $this->ensureUniquePaymentReference(
+                (int) $loan->id,
+                $referenceNo,
+            );
 
             $remainingPayment = round($amount, 2);
             $totalPrincipal = 0.00;
@@ -308,6 +337,11 @@ class LoanPaymentService
                 ->whereKey($loan->id)
                 ->lockForUpdate()
                 ->firstOrFail();
+
+            $this->ensureUniquePaymentReference(
+                (int) $loan->id,
+                $referenceNo,
+            );
 
             $restructuring = LoanRestructuring::query()
                 ->where('loan_id', $loan->id)
@@ -652,5 +686,28 @@ class LoanPaymentService
             'interest' => round($interestPayment, 2),
             'principal' => round($principalPayment, 2),
         ];
+    }
+
+    /**
+     * Reject a payment reference already used for this loan.
+     */
+    private function ensureUniquePaymentReference(
+        int $loanId,
+        ?string $referenceNo,
+    ): void {
+        if ($referenceNo === null || trim($referenceNo) === '') {
+            return;
+        }
+
+        $exists = LoanPayment::query()
+            ->where('loan_id', $loanId)
+            ->where('reference_no', trim($referenceNo))
+            ->exists();
+
+        if ($exists) {
+            throw new InvalidArgumentException(
+                'A payment with this reference number has already been recorded for this loan.'
+            );
+        }
     }
 }

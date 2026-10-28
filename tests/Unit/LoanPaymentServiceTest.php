@@ -192,6 +192,84 @@ class LoanPaymentServiceTest extends TestCase
         );
     }
 
+    public function test_it_rejects_non_finite_regular_payment_amounts(): void
+    {
+        $loan = $this->createReleasedLoan();
+
+        foreach ([INF, NAN] as $amount) {
+            try {
+                $this->service->recordPayment(
+                    loan: $loan,
+                    amount: $amount,
+                );
+
+                $this->fail('A non-finite payment amount should be rejected.');
+            } catch (InvalidArgumentException $exception) {
+                $this->assertSame(
+                    'Payment amount must be greater than zero.',
+                    $exception->getMessage(),
+                );
+            }
+        }
+
+        $this->assertSame(0, $loan->payments()->count());
+    }
+
+    public function test_it_rejects_regular_payment_amounts_that_round_to_zero(): void
+    {
+        $loan = $this->createReleasedLoan();
+
+        try {
+            $this->service->recordPayment(
+                loan: $loan,
+                amount: 0.001,
+            );
+
+            $this->fail('An amount that rounds to zero should be rejected.');
+        } catch (InvalidArgumentException $exception) {
+            $this->assertSame(
+                'Payment amount must be greater than zero.',
+                $exception->getMessage(),
+            );
+        }
+
+        $this->assertSame(0, $loan->payments()->count());
+        $this->assertSame(
+            'pending',
+            $loan->amortizations()->first()->fresh()->status,
+        );
+    }
+
+    public function test_it_rejects_non_finite_restructuring_payment_amounts(): void
+    {
+        $loan = $this->createReleasedLoan();
+        $this->createApprovedRestructuring($loan);
+
+        foreach ([INF, NAN] as $amount) {
+            try {
+                $this->service->recordRestructuringPayment(
+                    loan: $loan,
+                    amount: $amount,
+                    paymentDate: '2026-10-28',
+                );
+
+                $this->fail('A non-finite payment amount should be rejected.');
+            } catch (InvalidArgumentException $exception) {
+                $this->assertSame(
+                    'Payment amount must be greater than zero.',
+                    $exception->getMessage(),
+                );
+            }
+        }
+
+        $this->assertSame(0, $loan->payments()->count());
+        $this->assertSame(
+            'pending',
+            $loan->restructurings()->first()
+                ->amortizations()->first()->fresh()->status,
+        );
+    }
+
     public function test_it_updates_outstanding_balances(): void
     {
         $loan = $this->createReleasedLoan();
@@ -466,6 +544,180 @@ class LoanPaymentServiceTest extends TestCase
             paymentDate: '2026-10-26',
             referenceNo: 'RST-ALL-PAID',
         );
+    }
+
+    public function test_it_rejects_a_duplicate_payment_reference_for_the_same_loan(): void
+    {
+        $loan = $this->createReleasedLoan();
+
+        $this->service->recordPayment(
+            loan: $loan,
+            amount: 20.00,
+            paymentDate: '2026-10-28',
+            referenceNo: 'OR-DUPLICATE-001',
+        );
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage(
+            'A payment with this reference number has already been recorded for this loan.'
+        );
+
+        $this->service->recordPayment(
+            loan: $loan,
+            amount: 20.00,
+            paymentDate: '2026-10-28',
+            referenceNo: 'OR-DUPLICATE-001',
+        );
+    }
+
+    public function test_it_rejects_a_reference_already_used_for_a_regular_payment_when_restructuring(): void
+    {
+        $loan = $this->createReleasedLoan();
+        $this->createApprovedRestructuring($loan);
+
+        $this->service->recordPayment(
+            loan: $loan,
+            amount: 20.00,
+            paymentDate: '2026-10-28',
+            referenceNo: 'OR-CROSS-TYPE-001',
+        );
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage(
+            'A payment with this reference number has already been recorded for this loan.'
+        );
+
+        $this->service->recordRestructuringPayment(
+            loan: $loan,
+            amount: 20.00,
+            paymentDate: '2026-10-28',
+            referenceNo: 'OR-CROSS-TYPE-001',
+        );
+    }
+
+    public function test_it_allows_the_same_reference_for_different_loans(): void
+    {
+        $firstLoan = $this->createReleasedLoan();
+
+        // Create a second member and loan using the existing helper's pattern.
+        $secondMember = Member::create([
+            'member_no' => 'MEM-TEST-002',
+            'first_name' => 'Second',
+            'middle_name' => null,
+            'last_name' => 'Member',
+            'date_of_birth' => '1990-01-01',
+            'sex' => 'male',
+            'civil_status' => 'single',
+            'nationality' => 'Filipino',
+            'membership_type' => 'regular',
+            'date_joined' => '2026-01-01',
+            'status' => 'active',
+        ]);
+
+        $secondLoan = Loan::create([
+            'member_id' => $secondMember->id,
+            'loan_product_id' => $firstLoan->loan_product_id,
+            'loan_no' => 'LN-TEST-002',
+            'application_date' => '2026-09-25',
+            'approval_date' => '2026-09-25',
+            'release_date' => '2026-09-25',
+            'principal_amount' => 1000,
+            'interest_rate_monthly' => 1.50,
+            'term_months' => 12,
+            'monthly_amortization' => 98.33,
+            'outstanding_principal' => 1000,
+            'outstanding_interest' => 180,
+            'outstanding_penalty' => 0,
+            'service_fee' => 20,
+            'cbu_retention' => 30,
+            'insurance_premium' => 0,
+            'notarial_fee' => 0,
+            'net_process' => 950,
+            'status' => 'released',
+            'purpose' => 'Testing',
+            'remarks' => 'Second loan payment service test',
+        ]);
+
+        for ($installment = 1; $installment <= 12; $installment++) {
+            $principal = $installment === 12 ? 83.37 : 83.33;
+
+            LoanAmortization::create([
+                'loan_id' => $secondLoan->id,
+                'installment_no' => $installment,
+                'due_date' => now()->addMonths($installment)->toDateString(),
+                'beginning_balance' => max(
+                    0,
+                    1000 - (83.33 * ($installment - 1)),
+                ),
+                'principal_amount' => $principal,
+                'interest_amount' => 15,
+                'penalty_amount' => 0,
+                'total_due' => $principal + 15,
+                'paid_amount' => 0,
+                'paid_date' => null,
+                'status' => 'pending',
+            ]);
+        }
+
+        $reference = 'OR-DIFFERENT-LOANS-001';
+
+        $this->service->recordPayment(
+            loan: $firstLoan,
+            amount: 20,
+            paymentDate: '2026-10-28',
+            referenceNo: $reference,
+        );
+
+        $payment = $this->service->recordPayment(
+            loan: $secondLoan->fresh(),
+            amount: 20,
+            paymentDate: '2026-10-28',
+            referenceNo: $reference,
+        );
+
+        $this->assertSame($reference, $payment->reference_no);
+
+        $this->assertSame(
+            1,
+            LoanPayment::query()
+                ->where('loan_id', $firstLoan->id)
+                ->where('reference_no', $reference)
+                ->count(),
+        );
+
+        $this->assertSame(
+            1,
+            LoanPayment::query()
+                ->where('loan_id', $secondLoan->id)
+                ->where('reference_no', $reference)
+                ->count(),
+        );
+    }
+
+    public function test_it_allows_blank_and_null_payment_references(): void
+    {
+        $loan = $this->createReleasedLoan();
+
+        $blankReferencePayment = $this->service->recordPayment(
+            loan: $loan,
+            amount: 20,
+            paymentDate: '2026-10-28',
+            referenceNo: '',
+        );
+
+        $nullReferencePayment = $this->service->recordPayment(
+            loan: $loan,
+            amount: 20,
+            paymentDate: '2026-10-28',
+            referenceNo: null,
+        );
+
+        $this->assertSame('', $blankReferencePayment->reference_no);
+        $this->assertNull($nullReferencePayment->reference_no);
+
+        $this->assertSame(2, LoanPayment::query()
+            ->where('loan_id', $loan->id)
+            ->count());
     }
 
     private function createReleasedLoan(): Loan
