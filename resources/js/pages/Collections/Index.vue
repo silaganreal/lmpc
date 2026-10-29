@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
 import { route } from 'ziggy-js';
+import { ref } from 'vue';
 
 interface Stats {
     unpaidInstallments: number;
@@ -41,10 +42,95 @@ interface PaginatedInstallments {
     next_page_url: string | null;
 }
 
-defineProps<{
+interface Payment {
+    id: number;
+    payment_date: string;
+    reference_no: string | null;
+    principal_amount: number | string;
+    interest_amount: number | string;
+    penalty_amount: number | string;
+    total_amount: number | string;
+    payment_method: string;
+    remarks: string | null;
+    loan: {
+        id: number;
+        loan_no: string;
+        member: {
+            id: number;
+            first_name?: string;
+            middle_name?: string | null;
+            last_name?: string;
+            member_no?: string;
+        };
+    };
+    created_by: {
+        id: number;
+        name: string;
+    } | null;
+}
+
+interface PaginatedPayments {
+    data: Payment[];
+    current_page: number;
+    last_page: number;
+    total: number;
+    prev_page_url: string | null;
+    next_page_url: string | null;
+}
+
+interface CollectionTotals {
+    transactionCount: number;
+    totalAmount: number;
+    principalAmount: number;
+    interestAmount: number;
+    penaltyAmount: number;
+}
+
+interface CollectionFilters {
+    date_from: string;
+    date_to: string;
+}
+
+const props = defineProps<{
     stats: Stats;
     installments: PaginatedInstallments;
+    payments: PaginatedPayments;
+    collectionTotals: CollectionTotals;
+    filters: CollectionFilters;
 }>();
+
+const dateFrom = ref(props.filters.date_from);
+const dateTo = ref(props.filters.date_to);
+
+const applyFilters = () => {
+    router.get(
+        route('collections.index'),
+        {
+            date_from: dateFrom.value,
+            date_to: dateTo.value,
+        },
+        {
+            preserveState: true,
+            preserveScroll: true,
+            replace: true,
+        },
+    );
+};
+
+const resetFilters = () => {
+    dateFrom.value = '';
+    dateTo.value = '';
+
+    router.get(
+        route('collections.index'),
+        {},
+        {
+            preserveState: true,
+            preserveScroll: true,
+            replace: true,
+        },
+    );
+};
 
 const money = (value: number | string) =>
     new Intl.NumberFormat('en-PH', {
@@ -280,6 +366,221 @@ const isOverdue = (installment: Installment) =>
                     <Link
                         v-if="installments.next_page_url"
                         :href="installments.next_page_url"
+                        class="hover:bg-muted rounded-md border px-3 py-2 text-sm"
+                    >
+                        Next
+                    </Link>
+                </div>
+            </div>
+        </div>
+
+        <div class="overflow-hidden rounded-xl border">
+            <div class="border-b p-4">
+                <h2 class="font-semibold">Payment Transactions</h2>
+                <p class="text-muted-foreground mt-1 text-sm">
+                    {{ payments.total }} payment records for the selected period
+                </p>
+            </div>
+
+            <form
+                class="flex flex-wrap items-end gap-3 border-b p-4"
+                @submit.prevent="applyFilters"
+            >
+                <div class="grid gap-1">
+                    <label for="date_from" class="text-sm font-medium">
+                        From
+                    </label>
+                    <input
+                        id="date_from"
+                        v-model="dateFrom"
+                        type="date"
+                        required
+                        class="bg-background rounded-md border px-3 py-2 text-sm"
+                    />
+                </div>
+
+                <div class="grid gap-1">
+                    <label for="date_to" class="text-sm font-medium">
+                        To
+                    </label>
+                    <input
+                        id="date_to"
+                        v-model="dateTo"
+                        type="date"
+                        required
+                        :min="dateFrom || undefined"
+                        class="bg-background rounded-md border px-3 py-2 text-sm"
+                    />
+                </div>
+
+                <button
+                    type="submit"
+                    class="bg-primary text-primary-foreground rounded-md px-4 py-2 text-sm font-medium"
+                >
+                    Apply Filters
+                </button>
+
+                <button
+                    type="button"
+                    @click="resetFilters"
+                    class="rounded-md border px-4 py-2 text-sm"
+                >
+                    Reset
+                </button>
+            </form>
+
+            <div class="grid gap-4 border-b p-4 sm:grid-cols-2 xl:grid-cols-5">
+                <div>
+                    <p class="text-muted-foreground text-sm">Transactions</p>
+                    <p class="mt-1 text-xl font-semibold">
+                        {{ collectionTotals.transactionCount }}
+                    </p>
+                </div>
+
+                <div>
+                    <p class="text-muted-foreground text-sm">Total Collected</p>
+                    <p class="mt-1 text-xl font-semibold">
+                        {{ money(collectionTotals.totalAmount) }}
+                    </p>
+                </div>
+
+                <div>
+                    <p class="text-muted-foreground text-sm">Principal</p>
+                    <p class="mt-1 font-semibold">
+                        {{ money(collectionTotals.principalAmount) }}
+                    </p>
+                </div>
+
+                <div>
+                    <p class="text-muted-foreground text-sm">Interest</p>
+                    <p class="mt-1 font-semibold">
+                        {{ money(collectionTotals.interestAmount) }}
+                    </p>
+                </div>
+
+                <div>
+                    <p class="text-muted-foreground text-sm">Penalty</p>
+                    <p class="mt-1 font-semibold">
+                        {{ money(collectionTotals.penaltyAmount) }}
+                    </p>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead class="bg-muted/50 text-left">
+                        <tr>
+                            <th class="px-4 py-3 font-medium">Date</th>
+                            <th class="px-4 py-3 font-medium">Loan / Member</th>
+                            <th class="px-4 py-3 font-medium">Reference</th>
+                            <th class="px-4 py-3 font-medium">Method</th>
+                            <th class="px-4 py-3 text-right font-medium">
+                                Principal
+                            </th>
+                            <th class="px-4 py-3 text-right font-medium">
+                                Interest
+                            </th>
+                            <th class="px-4 py-3 text-right font-medium">
+                                Penalty
+                            </th>
+                            <th class="px-4 py-3 text-right font-medium">
+                                Total
+                            </th>
+                            <th class="px-4 py-3 font-medium">Recorded By</th>
+                        </tr>
+                    </thead>
+
+                    <tbody class="divide-y">
+                        <tr
+                            v-for="payment in payments.data"
+                            :key="payment.id"
+                            class="hover:bg-muted/30"
+                        >
+                            <td class="px-4 py-3 whitespace-nowrap">
+                                {{ formatDate(payment.payment_date) }}
+                            </td>
+
+                            <td class="px-4 py-3">
+                                <Link
+                                    :href="route('loans.show', payment.loan.id)"
+                                    class="text-primary font-medium hover:underline"
+                                >
+                                    {{ payment.loan.loan_no }}
+                                </Link>
+                                <div class="text-muted-foreground">
+                                    {{ memberName(payment.loan.member) }}
+                                </div>
+                                <div class="text-muted-foreground text-xs">
+                                    Member No.:
+                                    {{ payment.loan.member.member_no ?? '—' }}
+                                </div>
+                            </td>
+
+                            <td class="px-4 py-3">
+                                {{ payment.reference_no || '—' }}
+                            </td>
+
+                            <td class="px-4 py-3">
+                                {{
+                                    payment.payment_method.replaceAll('_', ' ')
+                                }}
+                            </td>
+
+                            <td class="px-4 py-3 text-right whitespace-nowrap">
+                                {{ money(payment.principal_amount) }}
+                            </td>
+
+                            <td class="px-4 py-3 text-right whitespace-nowrap">
+                                {{ money(payment.interest_amount) }}
+                            </td>
+
+                            <td class="px-4 py-3 text-right whitespace-nowrap">
+                                {{ money(payment.penalty_amount) }}
+                            </td>
+
+                            <td
+                                class="px-4 py-3 text-right font-semibold whitespace-nowrap"
+                            >
+                                {{ money(payment.total_amount) }}
+                            </td>
+
+                            <td class="px-4 py-3">
+                                {{
+                                    payment.created_by?.name ??
+                                    'System / unavailable'
+                                }}
+                            </td>
+                        </tr>
+
+                        <tr v-if="payments.data.length === 0">
+                            <td
+                                colspan="9"
+                                class="text-muted-foreground px-4 py-10 text-center"
+                            >
+                                No payment transactions found for this period.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="flex items-center justify-between gap-3 border-t p-4">
+                <span class="text-muted-foreground text-sm">
+                    Page {{ payments.current_page }} of {{ payments.last_page }}
+                </span>
+
+                <div class="flex gap-2">
+                    <Link
+                        v-if="payments.prev_page_url"
+                        :href="payments.prev_page_url"
+                        class="hover:bg-muted rounded-md border px-3 py-2 text-sm"
+                    >
+                        Previous
+                    </Link>
+
+                    <Link
+                        v-if="payments.next_page_url"
+                        :href="payments.next_page_url"
                         class="hover:bg-muted rounded-md border px-3 py-2 text-sm"
                     >
                         Next

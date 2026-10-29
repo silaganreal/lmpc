@@ -15,34 +15,6 @@ class LoanPaymentController extends Controller
         private readonly LoanPaymentService $loanPaymentService,
     ) {}
 
-    // public function store(
-    //     StoreLoanPaymentRequest $request,
-    //     Loan $loan,
-    // ): RedirectResponse {
-    //     $validated = $request->validated();
-
-    //     try {
-    //         $this->loanPaymentService->recordPayment(
-    //             loan: $loan,
-    //             amount: (float) $validated['amount'],
-    //             paymentDate: $validated['payment_date'],
-    //             referenceNo: $validated['reference_no'] ?? null,
-    //             paymentMethod: $validated['payment_method'],
-    //             remarks: $validated['remarks'] ?? null,
-    //             createdBy: $request->user()?->id,
-    //         );
-
-    //     } catch (\InvalidArgumentException $e) {
-    //         throw ValidationException::withMessages([
-    //             'amount' => $e->getMessage(),
-    //         ]);
-    //     }
-
-    //     return redirect()
-    //         ->route('loans.show', $loan)
-    //         ->with('success', 'Loan payment recorded successfully.');
-    // }
-
     public function store(
         StoreLoanPaymentRequest $request,
         Loan $loan,

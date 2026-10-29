@@ -14,6 +14,18 @@ class CollectionController extends Controller
     {
         $today = today()->toDateString();
 
+        $filters = $request->validate([
+            'date_from' => ['nullable', 'date_format:Y-m-d'],
+            'date_to' => [
+                'nullable',
+                'date_format:Y-m-d',
+                'after_or_equal:date_from',
+            ],
+        ]);
+
+        $dateFrom = $filters['date_from'] ?? now()->startOfMonth()->toDateString();
+        $dateTo = $filters['date_to'] ?? $today;
+
         $unpaidInstallments = LoanAmortization::query()
             ->whereIn('status', ['pending', 'partial']);
 
@@ -24,15 +36,36 @@ class CollectionController extends Controller
             ])
             ->orderBy('due_date')
             ->orderBy('installment_no')
-            ->paginate(15)
+            ->paginate(15, ['*'], 'installments_page')
             ->withQueryString();
 
-        // dd($installments->first()?->loan?->loanProduct?->toArray());
+        $paymentsQuery = LoanPayment::query()
+            ->with([
+                'loan.member',
+                'createdBy:id,name',
+            ])
+            ->whereDate('payment_date', '>=', $dateFrom)
+            ->whereDate('payment_date', '<=', $dateTo);
+
+        $payments = (clone $paymentsQuery)
+            ->orderByDesc('payment_date')
+            ->orderByDesc('id')
+            ->paginate(15, ['*'], 'payments_page')
+            ->withQueryString();
+
+        $collectionTotals = (clone $paymentsQuery)
+            ->selectRaw('
+                COUNT(*) as transaction_count,
+                COALESCE(SUM(total_amount), 0) as total_amount,
+                COALESCE(SUM(principal_amount), 0) as principal_amount,
+                COALESCE(SUM(interest_amount), 0) as interest_amount,
+                COALESCE(SUM(penalty_amount), 0) as penalty_amount
+            ')
+            ->first();
 
         return Inertia::render('Collections/Index', [
             'stats' => [
-                'unpaidInstallments' => (clone $unpaidInstallments)
-                    ->count(),
+                'unpaidInstallments' => (clone $unpaidInstallments)->count(),
 
                 'partialInstallments' => (clone $unpaidInstallments)
                     ->where('status', 'partial')
@@ -49,12 +82,20 @@ class CollectionController extends Controller
             ],
 
             'installments' => $installments,
+            'payments' => $payments,
 
-            // 'debugProduct' => $installments->getCollection()
-            //     ->first()
-            //     ?->loan
-            //     ?->loanProduct
-            //     ?->only(['id', 'code', 'name']),
+            'collectionTotals' => [
+                'transactionCount' => (int) ($collectionTotals->transaction_count ?? 0),
+                'totalAmount' => (float) ($collectionTotals->total_amount ?? 0),
+                'principalAmount' => (float) ($collectionTotals->principal_amount ?? 0),
+                'interestAmount' => (float) ($collectionTotals->interest_amount ?? 0),
+                'penaltyAmount' => (float) ($collectionTotals->penalty_amount ?? 0),
+            ],
+
+            'filters' => [
+                'date_from' => $dateFrom,
+                'date_to' => $dateTo,
+            ],
         ]);
     }
 }
