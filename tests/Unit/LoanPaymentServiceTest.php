@@ -11,6 +11,7 @@ use App\Models\LoanRestructuringAmortization;
 use App\Models\Member;
 use App\Models\User;
 use App\Services\Financial\LoanPaymentService;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
@@ -718,6 +719,65 @@ class LoanPaymentServiceTest extends TestCase
         $this->assertSame(2, LoanPayment::query()
             ->where('loan_id', $loan->id)
             ->count());
+    }
+
+    public function test_member_cannot_be_deleted_when_member_has_a_loan(): void
+    {
+        $loan = $this->createReleasedLoan();
+        $member = $loan->member;
+
+        try {
+            $member->delete();
+        } catch (QueryException) {
+            $this->assertDatabaseHas('members', [
+                'id' => $member->id,
+            ]);
+
+            $this->assertDatabaseHas('loans', [
+                'id' => $loan->id,
+            ]);
+
+            return;
+        }
+
+        $this->fail(
+            'A member with an associated loan should not be deletable.'
+        );
+    }
+
+    public function test_loan_cannot_be_deleted_when_loan_has_payment_records(): void
+    {
+        $loan = $this->createReleasedLoan();
+
+        $payment = LoanPayment::create([
+            'loan_id' => $loan->id,
+            'payment_date' => '2026-10-28',
+            'principal_amount' => 50.00,
+            'interest_amount' => 10.00,
+            'penalty_amount' => 0.00,
+            'total_amount' => 60.00,
+            'payment_method' => 'cash',
+            'reference_no' => 'TEST-DELETE-001',
+        ]);
+
+        try {
+            $loan->delete();
+        } catch (QueryException) {
+            $this->assertDatabaseHas('loans', [
+                'id' => $loan->id,
+            ]);
+
+            $this->assertDatabaseHas('loan_payments', [
+                'id' => $payment->id,
+                'loan_id' => $loan->id,
+            ]);
+
+            return;
+        }
+
+        $this->fail(
+            'A loan with payment records should not be deletable.'
+        );
     }
 
     private function createReleasedLoan(): Loan
