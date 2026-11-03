@@ -1,5 +1,9 @@
 <?php
 
+use App\Http\Controllers\Accounting\ChartOfAccountController;
+use App\Http\Controllers\Accounting\GeneralLedgerController;
+use App\Http\Controllers\Accounting\JournalEntryController;
+use App\Http\Controllers\Accounting\TrialBalanceController;
 use App\Http\Controllers\CbuController;
 use App\Http\Controllers\CollectionController;
 use App\Http\Controllers\DashboardController;
@@ -118,6 +122,50 @@ Route::middleware(['auth'])->group(function () {
 
     Route::post('/loans/{loan}/restructurings', [LoanRestructuringController::class, 'store'])
         ->name('loans.restructurings.store');
+
+    Route::get('/accounting/chart-of-accounts', [ChartOfAccountController::class, 'index'])
+        ->name('accounting.chart-of-accounts.index');
+
+    Route::post('/accounting/chart-of-accounts', [ChartOfAccountController::class, 'store'])
+        ->name('accounting.chart-of-accounts.store');
+
+    Route::put('/accounting/chart-of-accounts/{chartOfAccount}', [ChartOfAccountController::class, 'update'])
+        ->name('accounting.chart-of-accounts.update');
+
+    Route::patch('/accounting/chart-of-accounts/{chartOfAccount}/status', [ChartOfAccountController::class, 'updateStatus'])
+        ->name('accounting.chart-of-accounts.update-status');
+
+    Route::get('/accounting/journal-entries', [JournalEntryController::class, 'index'])
+        ->name('accounting.journal-entries.index');
+
+    Route::post('/accounting/journal-entries', [JournalEntryController::class, 'store'])
+        ->name('accounting.journal-entries.store');
+
+    Route::get('/accounting/journal-entries/{journalEntry}', [JournalEntryController::class, 'show'])
+        ->name('accounting.journal-entries.show');
+
+    Route::put('/accounting/journal-entries/{journalEntry}', [JournalEntryController::class, 'update'])
+        ->name('accounting.journal-entries.update');
+
+    Route::get('/accounting/journal-entries/{journalEntry}/edit', [JournalEntryController::class, 'edit'])
+        ->name('accounting.journal-entries.edit');
+
+    Route::post('/accounting/journal-entries/{journalEntry}/post', [JournalEntryController::class, 'post'])
+        ->name('accounting.journal-entries.post');
+
+    Route::post('/accounting/journal-entries/{journalEntry}/reverse', [JournalEntryController::class, 'reverse'])
+        ->name('accounting.journal-entries.reverse');
+
+    // General Ledger
+    Route::get('/accounting/general-ledger', [GeneralLedgerController::class, 'index'])
+        ->name('accounting.general-ledger.index');
+
+    Route::get('/accounting/general-ledger/{chartOfAccount}', [GeneralLedgerController::class, 'show'])
+        ->name('accounting.general-ledger.show');
+
+    // Trial Balance
+    Route::get('/accounting/trial-balance', [TrialBalanceController::class, 'index'])
+        ->name('accounting.trial-balance.index');
 });
 
 require __DIR__.'/settings.php';

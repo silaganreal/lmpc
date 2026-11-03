@@ -12,6 +12,7 @@ import type { NavItem } from '@/types';
 
 defineProps<{
     items: NavItem[];
+    label?: string;
 }>();
 
 const { isCurrentUrl } = useCurrentUrl();
@@ -20,9 +21,10 @@ const { isCurrentUrl } = useCurrentUrl();
 <template>
     <SidebarGroup class="px-2 py-0">
         <SidebarGroupLabel
+            v-if="label"
             class="text-sidebar-foreground/60 text-[11px] font-semibold tracking-wider uppercase"
         >
-            Main
+            {{ label }}
         </SidebarGroupLabel>
 
         <SidebarMenu>

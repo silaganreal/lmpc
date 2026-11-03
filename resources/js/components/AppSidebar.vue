@@ -1,6 +1,17 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
-import { FileText, LayoutGrid, Users, Wallet } from '@lucide/vue';
+
+import {
+    BookOpen,
+    Calculator,
+    FileBarChart,
+    FileText,
+    LayoutGrid,
+    ListTree,
+    Scale,
+    Users,
+    Wallet,
+} from '@lucide/vue';
 
 import AppLogo from '@/components/AppLogo.vue';
 import NavMain from '@/components/NavMain.vue';
@@ -41,6 +52,29 @@ const mainNavItems: NavItem[] = [
         icon: Wallet,
     },
 ];
+
+const accountingNavItems: NavItem[] = [
+    {
+        title: 'Chart of Accounts',
+        href: '/accounting/chart-of-accounts',
+        icon: ListTree,
+    },
+    {
+        title: 'Journal Entries',
+        href: '/accounting/journal-entries',
+        icon: BookOpen,
+    },
+    {
+        title: 'General Ledger',
+        href: '/accounting/general-ledger',
+        icon: Scale,
+    },
+    {
+        title: 'Trial Balance',
+        href: '/accounting/trial-balance',
+        icon: Calculator,
+    },
+];
 </script>
 
 <template>
@@ -58,7 +92,9 @@ const mainNavItems: NavItem[] = [
         </SidebarHeader>
 
         <SidebarContent>
-            <NavMain :items="mainNavItems" />
+            <NavMain :items="mainNavItems" label="MAIN" />
+
+            <NavMain :items="accountingNavItems" label="ACCOUNTING" />
         </SidebarContent>
 
         <SidebarFooter>
